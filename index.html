@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Right Now</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<div id="customModal" class="custom-modal hidden">
+  <div class="custom-box">
+    <h2>Pomodoro Personalizado</h2>
+
+    <div id="customRows" class="custom-rows"></div>
+
+    <div class="custom-controls">
+      <button class="row-btn right" onclick="Pomodoro.addCustomRow()">+</button>
+      <button class="row-btn left" onclick="Pomodoro.removeCustomRow()">−</button>
+    </div>
+
+    <button class="save-btn" onclick="Pomodoro.saveCustom()">Salvar</button>
+  </div>  
+</div>
+
+<div id="miniAnalogClock" class="mini-analog-clock">
+    <div class="hand hour"></div>
+    <div class="hand minute"></div>
+    <div class="hand second"></div>
+</div>
+
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+    <div class="topbar-left">
+    <button id="homeBtn" class="icon-circle" title="Início">🏠</button>
+
+    <select id="timezoneSelector" class="timezone-topbar"></select>
+</div>
+
+    <div class="topbar-right">
+        <button id="printQtsBtn" class="icon-circle" title="Imprimir Quadro">🖨</button>
+        <button id="fullscreenBtn" class="icon-circle" title="Tela cheia">⛶</button>
+        <button id="darkToggle" class="icon-circle" title="Modo noturno">🌙</button>
+    </div>
+</header>
+
+
+<!-- HERO -->
+<section id="hero" class="hero">
+
+    <div id="pomodoroPresets" class="pomodoro-presets"></div>
+
+    <div class="date-display" id="dateDisplay"></div>
+
+    <div class="time-display" id="timeDisplay">00:00:00</div>
+    <div id="cycleProgress" class="cycle-progress"></div>
+    <div id="progressiveBars" class="progressive-bars"></div>
+    <div class="controls" id="controls">
+        <button id="playBtn" class="control-btn" title="Play (enter)">▶</button>
+        <button id="pauseBtn" class="control-btn" title="Pause (Espaço)">⏸</button>
+        <button id="resetBtn" class="control-btn" title="Reset (Backspace)">↺</button>
+    </div>
+
+</section>
+
+
+<!-- MODULE AREA -->
+<main id="moduleArea">
+
+    <section id="alarmModule" class="module"></section>
+    <section id="calendarModule" class="module"></section>
+    <section id="pomodoroModule" class="module"></section>
+    <section id="qtsModule" class="module"></section>
+
+</main>
+
+
+<!-- FOOTER -->
+<footer class="footer">
+
+    <div class="footer-icons">
+        <button data-module="alarm" class="icon-circle footer-icon" data-label="Despertador">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<path stroke-linecap="round" stroke-linejoin="round" d="M10 2h4m-2 0v3m-7 5a9 9 0 1114 0c0 4-3 6-7 6s-7-2-7-6z" />
+</svg>
+</button>
+
+<button data-module="calendar" class="icon-circle footer-icon" data-label="Lembrete">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<rect x="3" y="4" width="18" height="18" rx="2" />
+<path d="M16 2v4M8 2v4M3 10h18" />
+</svg>
+</button>
+
+<button data-module="stopwatch" class="icon-circle footer-icon"data-label="Cronômetro">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<circle cx="12" cy="13" r="8" />
+<path d="M12 9v4l3 3M9 2h6" />
+</svg>
+</button>
+
+<button data-module="timer" class="icon-circle footer-icon" data-label="Timer">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<circle cx="12" cy="13" r="8" />
+<path d="M12 13l3-3M9 2h6" />
+</svg>
+</button>
+
+<button data-module="pomodoro" class="icon-circle footer-icon" data-label="Pomodoro">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<path d="M12 2C9 2 6 5 6 8s3 6 6 6 6-3 6-6-3-6-6-6z" />
+<path d="M12 2v4" />
+</svg>
+</button>
+
+<button data-module="qts" class="icon-circle footer-icon" data-label="Quadro horário">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+<rect x="3" y="3" width="7" height="7" />
+<rect x="14" y="3" width="7" height="7" />
+<rect x="14" y="14" width="7" height="7" />
+<rect x="3" y="14" width="7" height="7" />
+</svg>
+</button>
+    </div>
+
+    <div class="donate-area">
+        <a href="#" id="donateLink">Doar</a>
+        <div class="no-ads">Site livre de anúncios e popups!</div>
+    </div>
+
+    <div class="footer-divider"></div>
+
+    <div id="worldCarousel" class="world-carousel"></div>
+
+</footer>
+
+
+<script src="js/app.js"></script>
+<script src="js/clock.js"></script>
+<script src="js/timer.js"></script>
+<script src="js/alarm.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/pomodoro.js"></script>
+<script src="js/qts.js"></script>
+<script src="js/storage.js"></script>
+
+</body>
+</html>
