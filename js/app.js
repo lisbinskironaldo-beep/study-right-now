@@ -18,17 +18,37 @@ const Core = {
     state: {
         mode: "clock",      // clock | stopwatch | timer | pomodoro | alarm | calendar | qts
         running: false,
-        editing: false
+        editing: false,
+
+    modules: {},
     },
 
     init() {
+
+        
         this.cacheDOM();
+        this.registerModules();
         this.bindUI();
         this.initKeyboard();
         this.initFullscreen();
         this.initDarkMode();
         this.goHome();
     },
+    registerModules() {
+
+    if (typeof Clock !== "undefined")
+        this.modules.clock = Clock;
+
+    if (typeof Stopwatch !== "undefined")
+        this.modules.stopwatch = Stopwatch;
+
+    if (typeof Timer !== "undefined")
+        this.modules.timer = Timer;
+
+    if (typeof Pomodoro !== "undefined")
+        this.modules.pomodoro = Pomodoro;
+
+},
 
     cacheDOM() {
         this.hero = document.getElementById("hero");
@@ -127,24 +147,16 @@ const Core = {
     this.hideModules();
 
     if (mode === "clock") {
-        this.hideControls();
-        if (typeof Clock !== "undefined") Clock.start();
-        return;
-    }
+    this.hideControls();
+    if (this.modules.clock) this.modules.clock.start();
+    return;
+}
 
-    this.showControls();
+this.showControls();
 
-    if (mode === "stopwatch" && typeof Stopwatch !== "undefined") {
-        Stopwatch.render();
-    }
-
-    if (mode === "timer" && typeof Timer !== "undefined") {
-        Timer.render();
-    }
-
-    if (mode === "pomodoro" && typeof Pomodoro !== "undefined") {
-        Pomodoro.render();
-    }
+if (this.modules[mode] && this.modules[mode].render) {
+    this.modules[mode].render();
+}
 },
 
     goHome() {
@@ -153,41 +165,36 @@ const Core = {
     document.body.setAttribute("data-mode", "clock");
     this.state.running = false;
 
-    // 🔒 parar tudo
     this.stopAll();
-   this.clearVisualResidues("clock");
+    this.clearVisualResidues("clock");
 
     this.hideModules();
     this.showHero();
     this.hideControls();
 
-    if (typeof Clock !== "undefined") {
-        Clock.start();
+    if (this.modules.clock) {
+        this.modules.clock.start();
     }
 },
 
     control(action) {
 
-        if (this.state.mode === "stopwatch" && typeof Stopwatch !== "undefined") {
-            Stopwatch[action]();
-        }
+        const module = this.modules[this.state.mode];
 
-        if (this.state.mode === "timer" && typeof Timer !== "undefined") {
-            Timer[action]();
-        }
-
-        if (this.state.mode === "pomodoro" && typeof Pomodoro !== "undefined") {
-            Pomodoro[action]();
-        }
+if (module && typeof module[action] === "function") {
+    module[action]();
+}
     },
 
     stopAll() {
-        this.state.running = false;
 
-        if (typeof Stopwatch !== "undefined") Stopwatch.pause();
-        if (typeof Timer !== "undefined") Timer.pause();
-        if (typeof Pomodoro !== "undefined") Pomodoro.pause();
-    },
+    this.state.running = false;
+
+    Object.values(this.modules).forEach(m => {
+        if (m.pause) m.pause();
+    });
+
+},
 
     clearVisualResidues(target) {
 
