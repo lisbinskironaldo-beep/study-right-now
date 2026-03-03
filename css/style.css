@@ -1616,3 +1616,108 @@ body.immersive-mode .time-display::before {
     background: linear-gradient(90deg, #ffb199, #ff6a88);
     color: white;
 }
+/* ================= AMBIENT PANEL DEFINITIVO ================= */
+
+.hero {
+    position: relative; /* necessário para posicionamento absoluto */
+}
+
+.ambient-panel {
+    position: absolute;
+    top: 10%;
+    left: calc(18% + 460px); /* ajusta distância do relógio */
+    transform: translateY(-50%) scale(0.95);
+
+    width: 200px;
+    max-height: 240px;
+    overflow-y: auto;
+
+    padding: 20px;
+    border-radius: 26px;
+
+    background: rgba(255,255,255,0.14);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.25);
+
+    box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.25s ease;
+
+    z-index: 999;
+}
+
+/* Painel ativo */
+.ambient-panel.show {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+    pointer-events: auto;
+}
+
+/* Título */
+.ambient-panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    opacity: 0.7;
+}
+
+/* Opções */
+.ambient-option {
+    padding: 10px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.ambient-option:hover {
+    background: rgba(0,120,255,0.18);
+}
+
+/* Scroll moderno */
+.ambient-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ambient-panel::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.25);
+    border-radius: 10px;
+}
+
+body.dark .ambient-panel {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+}
+
+body.dark .ambient-panel::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.25);
+}
+
+/* ===== MINI AMBIENT CONTROLS ===== */
+
+.ambient-mini-controls {
+    margin-top: 6px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    opacity: 0.9;
+}
+
+.mini-flat-btn {
+    border: none;
+    background: rgba(0,120,255,0.12);
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.mini-flat-btn:hover {
+    background: rgba(0,120,255,0.25);
+}
+
+body.dark .mini-flat-btn {
+    background: rgba(255,255,255,0.12);
+}
