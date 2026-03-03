@@ -2,30 +2,24 @@
    CORE ARCHITECTURE — HORÁRIO ONLINE
 ===================================================== */
 
-/*
-Arquitetura centralizada:
-
-- 1 estado global único
-- 1 sistema de navegação
-- 1 sistema de teclado
-- 1 sistema de áudio
-- 1 controle de hero / módulos
-- Nenhum listener espalhado fora do core
-*/
-
 const Core = {
 
     state: {
-        mode: "clock",      // clock | stopwatch | timer | pomodoro | alarm | calendar | qts
+        mode: "clock",
         running: false,
-        editing: false,
-
-    modules: {},
+        editing: false
     },
 
-    init() {
+    modules: {},
+    moduleElements: [],
+    footerButtons: [],
+    hero: null,
+    controls: null,
+    printBtn: null,
 
-        
+    /* ================= INIT ================= */
+
+    init() {
         this.cacheDOM();
         this.registerModules();
         this.bindUI();
@@ -34,316 +28,337 @@ const Core = {
         this.initDarkMode();
         this.goHome();
     },
+
     registerModules() {
 
-    if (typeof Clock !== "undefined")
-        this.modules.clock = Clock;
+        if (typeof Clock !== "undefined")
+            this.modules.clock = Clock;
 
-    if (typeof Stopwatch !== "undefined")
-        this.modules.stopwatch = Stopwatch;
+        if (typeof Stopwatch !== "undefined")
+            this.modules.stopwatch = Stopwatch;
 
-    if (typeof Timer !== "undefined")
-        this.modules.timer = Timer;
+        if (typeof Timer !== "undefined")
+            this.modules.timer = Timer;
 
-    if (typeof Pomodoro !== "undefined")
-        this.modules.pomodoro = Pomodoro;
+        if (typeof Pomodoro !== "undefined")
+            this.modules.pomodoro = Pomodoro;
+    },
 
-},
+    getActiveModule() {
+        return this.modules[this.state.mode] || null;
+    },
+
+    /* ================= DOM ================= */
 
     cacheDOM() {
-        this.hero = document.getElementById("hero");
-        this.controls = document.getElementById("controls");
-        this.timeDisplay = document.getElementById("timeDisplay");
-        this.dateDisplay = document.getElementById("dateDisplay");
-        this.modules = document.querySelectorAll(".module");
-        this.footerButtons = document.querySelectorAll("[data-module]");
+
+        this.hero = document.getElementById("hero") || null;
+        this.controls = document.getElementById("controls") || null;
+
+        this.moduleElements =
+            document.querySelectorAll(".module") || [];
+
+        this.footerButtons =
+            document.querySelectorAll("[data-module]") || [];
+
+        this.printBtn =
+            document.getElementById("printQtsBtn") || null;
     },
 
     bindUI() {
 
-        document.getElementById("focusModeBtn")
-    .addEventListener("click", () => {
-        document.body.classList.toggle("focus-mode");
-    });
+        const focusBtn =
+            document.getElementById("focusModeBtn");
 
-        // Footer navigation
+        if (focusBtn) {
+            focusBtn.addEventListener("click", () => {
+                document.body.classList.toggle("focus-mode");
+            });
+        }
+
         this.footerButtons.forEach(btn => {
-    btn.addEventListener("click", () => {
 
-        const module = btn.dataset.module;
+            btn.addEventListener("click", () => {
 
-        this.footerButtons.forEach(b =>
-            b.classList.remove("active-footer")
-        );
+                const module = btn.dataset.module;
 
-        btn.classList.add("active-footer");
+                this.footerButtons.forEach(b =>
+                    b.classList.remove("active-footer")
+                );
 
-        this.navigate(module);
-    });
-});
+                btn.classList.add("active-footer");
 
-        // Home
-       document.getElementById("homeBtn")
-    .addEventListener("click", () => {
+                this.navigate(module);
+            });
+        });
 
-        this.footerButtons.forEach(b =>
-            b.classList.remove("active-footer")
-        );
+        const homeBtn =
+            document.getElementById("homeBtn");
 
-        this.goHome();
-    });
+        if (homeBtn) {
+            homeBtn.addEventListener("click", () => {
 
-        // Controls
-        document.getElementById("playBtn")
-            .addEventListener("click", () => this.control("play"));
+                this.footerButtons.forEach(b =>
+                    b.classList.remove("active-footer")
+                );
 
-        document.getElementById("pauseBtn")
-            .addEventListener("click", () => this.control("pause"));
+                this.goHome();
+            });
+        }
 
-        document.getElementById("resetBtn")
-            .addEventListener("click", () => this.control("reset"));
+        const playBtn =
+            document.getElementById("playBtn");
+        const pauseBtn =
+            document.getElementById("pauseBtn");
+        const resetBtn =
+            document.getElementById("resetBtn");
+
+        if (playBtn)
+            playBtn.addEventListener("click",
+                () => this.control("play"));
+
+        if (pauseBtn)
+            pauseBtn.addEventListener("click",
+                () => this.control("pause"));
+
+        if (resetBtn)
+            resetBtn.addEventListener("click",
+                () => this.control("reset"));
     },
+
+    /* ================= NAVIGATION ================= */
 
     navigate(target) {
 
-    this.stopAll();
-    this.hideModules();
-    this.clearVisualResidues(target);
+        if (this.modules[target]) {
+            this.changeMode(target);
+            return;
+        }
 
-    // Modos que usam HERO
-    if (
-        target === "clock" ||
-        target === "stopwatch" ||
-        target === "timer" ||
-        target === "pomodoro"
-    ) {
-        this.setMode(target);
-        return;
-    }
+        this.stopAll();
+        this.clearVisualResidues(target);
 
-    // QTS
-    if (target === "qts") {
-    const printBtn = document.getElementById("printQtsBtn");
-    if (printBtn) {
-        printBtn.style.visibility = "visible";
-        printBtn.style.pointerEvents = "auto";
-    }
-}
+        if (target === "qts" && this.printBtn) {
+            this.printBtn.style.visibility = "visible";
+            this.printBtn.style.pointerEvents = "auto";
+        }
 
-    // Módulos de tela cheia
-    this.hideHero();
-    document.getElementById(target + "Module").classList.add("active");
+        this.hideHero();
+        this.hideModules();
 
-    this.state.mode = target;
-    document.body.setAttribute("data-mode", target);
-},
+        const moduleEl =
+            document.getElementById(target + "Module");
+
+        if (moduleEl)
+            moduleEl.classList.add("active");
+
+        this.state.mode = target;
+        document.body.setAttribute("data-mode", target);
+    },
+
+    changeMode(mode) {
+        this.stopAll();
+        this.clearVisualResidues(mode);
+        this.setMode(mode);
+    },
 
     setMode(mode) {
 
-    this.state.mode = mode;
-    document.body.setAttribute("data-mode", mode);
+        this.state.mode = mode;
+        document.body.setAttribute("data-mode", mode);
 
-    this.showHero();
-    this.hideModules();
+        this.hideModules();
+        this.showHero();
 
-    if (mode === "clock") {
-    this.hideControls();
-    if (this.modules.clock) this.modules.clock.start();
-    return;
-}
+        const module = this.modules[mode];
 
-this.showControls();
+        if (mode === "clock") {
+            this.hideControls();
+            if (module && module.start)
+                module.start();
+            return;
+        }
 
-if (this.modules[mode] && this.modules[mode].render) {
-    this.modules[mode].render();
-}
-},
+        this.showControls();
+
+        if (module && module.render)
+            module.render();
+    },
 
     goHome() {
+        this.changeMode("clock");
+    },
 
-    this.state.mode = "clock";
-    document.body.setAttribute("data-mode", "clock");
-    this.state.running = false;
-
-    this.stopAll();
-    this.clearVisualResidues("clock");
-
-    this.hideModules();
-    this.showHero();
-    this.hideControls();
-
-    if (this.modules.clock) {
-        this.modules.clock.start();
-    }
-},
+    /* ================= CONTROL ================= */
 
     control(action) {
 
-        const module = this.modules[this.state.mode];
+        const module = this.getActiveModule();
 
-if (module && typeof module[action] === "function") {
-    module[action]();
-}
+        if (module &&
+            typeof module[action] === "function") {
+            module[action]();
+        }
     },
 
     stopAll() {
 
-    this.state.running = false;
+        this.state.running = false;
 
-    Object.values(this.modules).forEach(m => {
-        if (m.pause) m.pause();
-    });
-
-},
+        Object.values(this.modules)
+            .forEach(m => {
+                if (m.pause) m.pause();
+            });
+    },
 
     clearVisualResidues(target) {
 
-    // NÃO limpar se o destino for QTS
-    if (target === "qts") return;
+        if (target === "qts") return;
 
-    const ids = [
-        "progressiveBars",
-        "cycleProgress",
-        "pomodoroPresets"
-    ];
+        const ids = [
+            "progressiveBars",
+            "cycleProgress",
+            "pomodoroPresets"
+        ];
 
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = "";
-    });
+        ids.forEach(id => {
+            const el =
+                document.getElementById(id);
+            if (el) el.innerHTML = "";
+        });
 
-    const printBtn = document.getElementById("printQtsBtn");
-    if (printBtn) {
-        printBtn.style.visibility = "hidden";
-        printBtn.style.pointerEvents = "none";
-    }
+        if (this.printBtn) {
+            this.printBtn.style.visibility = "hidden";
+            this.printBtn.style.pointerEvents = "none";
+        }
+    },
 
-},
+    /* ================= UI HELPERS ================= */
 
     hideModules() {
-    this.modules.forEach(m => {
-        m.classList.remove("active");
-        m.classList.remove("fade-out");
-    });
-},
+        this.moduleElements.forEach(m => {
+            m.classList.remove("active");
+            m.classList.remove("fade-out");
+        });
+    },
 
     hideHero() {
-    this.hero.style.display = "none";
-
-},
+        if (this.hero)
+            this.hero.style.display = "none";
+    },
 
     showHero() {
-    this.hero.style.display = "block";
-},
+        if (this.hero)
+            this.hero.style.display = "block";
+    },
 
     showControls() {
-        this.controls.style.display = "flex";
+        if (this.controls)
+            this.controls.style.display = "flex";
     },
 
     hideControls() {
-        this.controls.style.display = "none";
+        if (this.controls)
+            this.controls.style.display = "none";
     },
 
-        initKeyboard() {
+    /* ================= KEYBOARD ================= */
 
-    document.addEventListener("keydown", (e) => {
+    initKeyboard() {
 
-        if (
-            e.target.isContentEditable ||
-            e.target.tagName === "INPUT" ||
-            e.target.tagName === "TEXTAREA"
-        ) {
-            return;
-        }
+        document.addEventListener("keydown", (e) => {
 
-        // ESC sempre funciona
-        if (e.key === "Escape") {
+            if (
+                e.target.isContentEditable ||
+                e.target.tagName === "INPUT" ||
+                e.target.tagName === "TEXTAREA"
+            ) return;
 
-            document.body.classList.remove("focus-mode");
-            document.body.classList.remove("immersive-mode");
+            if (e.key === "Escape") {
 
-            if (document.fullscreenElement) {
-                document.exitFullscreen();
+                document.body.classList.remove("focus-mode");
+                document.body.classList.remove("immersive-mode");
+
+                if (document.fullscreenElement)
+                    document.exitFullscreen();
+
+                return;
             }
 
-            return;
-        }
+            if (e.key.toLowerCase() === "f" && e.shiftKey) {
 
-        // Shift + F → Relógio + Imersivo + Fullscreen
-        if (e.key.toLowerCase() === "f" && e.shiftKey) {
+                if (this.state.mode !== "clock")
+                    this.goHome();
 
-            document.body.classList.remove("focus-mode");
+                document.body.classList.add("immersive-mode");
 
-            if (Core.state.mode !== "clock") {
-                Core.goHome();
+                if (!document.fullscreenElement)
+                    document.documentElement.requestFullscreen();
+
+                return;
             }
 
-            document.body.classList.add("immersive-mode");
+            if (this.state.mode !== "clock") {
 
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
+                if (e.key === "Enter")
+                    this.control("play");
+
+                if (e.code === "Space") {
+                    e.preventDefault();
+                    this.control("pause");
+                }
+
+                if (e.key === "Backspace")
+                    this.control("reset");
             }
-
-            return;
-        }
-
-        // Controles só se NÃO for relógio
-        if (this.state.mode !== "clock") {
-
-            if (e.key === "Enter") {
-                this.control("play");
-            }
-
-            if (e.code === "Space") {
-                e.preventDefault();
-                this.control("pause");
-            }
-
-            if (e.key === "Backspace") {
-                this.control("reset");
-            }
-
-        }
-
-    });
-
-},
+        });
+    },
 
     initFullscreen() {
 
-        document.getElementById("fullscreenBtn")
-            .addEventListener("click", () => {
+        const btn =
+            document.getElementById("fullscreenBtn");
 
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen();
-                } else {
-                    document.exitFullscreen();
-                }
+        if (!btn) return;
 
-            });
+        btn.addEventListener("click", () => {
+
+            if (!document.fullscreenElement)
+                document.documentElement.requestFullscreen();
+            else
+                document.exitFullscreen();
+        });
     },
 
     initDarkMode() {
 
-        document.getElementById("darkToggle")
-            .addEventListener("click", () => {
-                document.body.classList.toggle("dark");
-            });
+        const btn =
+            document.getElementById("darkToggle");
+
+        if (!btn) return;
+
+        btn.addEventListener("click", () => {
+            document.body.classList.toggle("dark");
+        });
     }
 
 };
+
+/* ================= BOOT ================= */
 
 document.addEventListener("DOMContentLoaded", () => {
 
     Core.init();
 
-    const side = document.getElementById("sideModules");
-    const footerIcons = document.querySelectorAll(".footer-icon");
+    const side =
+        document.getElementById("sideModules");
+
+    const footerIcons =
+        document.querySelectorAll(".footer-icon");
 
     if (side) {
-        footerIcons.forEach(icon => {
-            side.appendChild(icon);
-        });
+        footerIcons.forEach(icon =>
+            side.appendChild(icon)
+        );
     }
-
 });
