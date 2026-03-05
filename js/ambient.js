@@ -118,41 +118,7 @@ if (volume) {
 
     },
 
-    /* ================= CAROUSEL ================= */
-
-    renderCarousel() {
-
-        const keys = Object.keys(this.categories);
-        const container = document.getElementById("ambientCategories");
-
-        if (!container) return;
-
-        container.innerHTML = "";
-
-        keys.forEach((key, i) => {
-
-            const el = document.createElement("div");
-            el.className = "ambient-category";
-
-            if (i === this.currentCategoryIndex) el.classList.add("center");
-            else if (i === this.currentCategoryIndex - 1 || i === this.currentCategoryIndex + 1)
-                el.classList.add("side");
-
-            el.innerHTML = `<img src="assets/ambient/${key}.jpg">`;
-
-            el.onclick = () => {
-                this.currentCategoryIndex = i;
-                this.renderCarousel();
-                this.renderPlayerSounds(key);
-            };
-
-            container.appendChild(el);
-
-        });
-
-    },
-
-    /* ================= PLAYER UI ================= */
+        /* ================= PLAYER UI ================= */
 
     updatePlayerUI(name, category) {
 
@@ -367,9 +333,17 @@ audio.volume = volumeSlider ? parseFloat(volumeSlider.value) : 0.3;
 
     const cat = this.categories[key];
 
+    let cls = ""
+
+    if(i === this.currentCategoryIndex) cls = "center"
+    else if(
+        i === this.currentCategoryIndex-1 ||
+        i === this.currentCategoryIndex+1
+    ) cls = "side"
+
     return `
-    <div class="ambient-category ${i === this.currentCategoryIndex ? "center" : ""}" data-cat="${key}">
-        ${cat.icon}
+    <div class="ambient-category ${cls}" data-cat="${key}">
+        <img src="assets/ambient/${key}.jpg">
     </div>
     `;
 
@@ -377,11 +351,27 @@ audio.volume = volumeSlider ? parseFloat(volumeSlider.value) : 0.3;
 
         container.querySelectorAll(".ambient-category").forEach(btn => {
 
-            btn.addEventListener("mouseenter", () => {
+            btn.addEventListener("click",(e)=>{
 
-                this.renderPlayerSounds(btn.dataset.cat);
+e.stopPropagation()
 
-            });
+const category = btn.dataset.cat
+
+this.currentCategoryIndex =
+Object.keys(this.categories).indexOf(category)
+
+this.renderPlayerCategories()
+
+this.currentCategory = category
+this.currentIndex = 0
+
+this.renderPlayerSounds(category)
+
+document
+.getElementById("ambientPanelNew")
+.classList.add("open")
+
+});
 
         });
 
@@ -452,72 +442,6 @@ ${category === "favorites" ? "✖" : "☆"}
                 .sounds[this.currentIndex].src
         );
 
-        /* ================= KEYBOARD NAVIGATION ================= */
-
-let rows = Array.from(container.querySelectorAll(".ambient-sound"));
-let currentRow = 0;
-let focusPart = "row";
-
-if(rows.length){
-    rows[0].classList.add("active");
-}
-
-document.onkeydown = (e) => {
-
-    if(e.key === "Escape"){
-        document.getElementById("ambientPanelNew").classList.remove("open");
-        return;
-    }
-
-    if(!document.getElementById("ambientPanelNew").classList.contains("open"))
-        return;
-
-    if(e.key === "ArrowDown"){
-        currentRow = (currentRow + 1) % rows.length;
-        focusPart = "row";
-    }
-
-    if(e.key === "ArrowUp"){
-        currentRow = (currentRow - 1 + rows.length) % rows.length;
-        focusPart = "row";
-    }
-
-    rows.forEach(r => r.classList.remove("active"));
-    rows[currentRow].classList.add("active");
-
-    if(e.key === "ArrowRight"){
-        focusPart = "fav";
-    }
-
-    if(e.key === "ArrowLeft"){
-        focusPart = "preview";
-    }
-
-    if(e.key === "Enter"){
-
-        const row = rows[currentRow];
-
-        if(focusPart === "row"){
-            this.currentCategory = row.dataset.cat;
-            this.currentIndex = parseInt(row.dataset.index);
-
-            this.play(
-                this.categories[this.currentCategory]
-                .sounds[this.currentIndex].src
-            );
-        }
-
-        if(focusPart === "preview"){
-            row.querySelector(".ambient-preview").click();
-        }
-
-        if(focusPart === "fav"){
-            row.querySelector(".ambient-fav").click();
-        }
-
-    }
-
-};
 
     });
 
@@ -609,7 +533,7 @@ if(e.key === "ArrowRight"){
 this.currentCategoryIndex =
 (this.currentCategoryIndex + 1) % keys.length;
 
-this.renderCarousel();
+this.renderPlayerCategories();
 
 return;
 
@@ -620,7 +544,7 @@ if(e.key === "ArrowLeft"){
 this.currentCategoryIndex =
 (this.currentCategoryIndex - 1 + keys.length) % keys.length;
 
-this.renderCarousel();
+this.renderPlayerCategories();
 
 return;
 
