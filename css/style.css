@@ -1160,31 +1160,6 @@ body.dark .log-item {
 
 /* ================= AMBIENT CONTROLS ================= */
 
-.ambient-controls {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-}
-
-.ambient-btn {
-    padding: 6px 10px;
-    font-size: 11px;
-    border: none;
-    border-radius: 20px;
-    background: rgba(0,0,0,0.08);
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-.ambient-btn:hover {
-    background: rgba(0,120,255,0.2);
-}
-
-body.dark .ambient-btn {
-    background: rgba(255,255,255,0.12);
-}
-
 /* ================= ADVANCED STATS ================= */
 
 .advanced-stats {
@@ -1419,14 +1394,12 @@ body.focus-mode .time-display {
 
 /* ================= HYPER CLEAN FIX ================= */
 
-body.focus-mode .ambient-controls,
 body.focus-mode .cycle-progress,
 body.focus-mode .progressive-bars,
 body.focus-mode .pomodoro-presets {
     display: none !important;
 }
 
-body.immersive-mode .ambient-controls,
 body.immersive-mode .cycle-progress,
 body.immersive-mode .progressive-bars,
 body.immersive-mode .pomodoro-presets {
@@ -1694,30 +1667,582 @@ body.dark .ambient-panel::-webkit-scrollbar-thumb {
     background: rgba(255,255,255,0.25);
 }
 
-/* ===== MINI AMBIENT CONTROLS ===== */
+body:not([data-mode="pomodoro"]) #weeklyGoal,
+body:not([data-mode="pomodoro"]) #studyStats,
+body:not([data-mode="pomodoro"]) #levelSystem,
+body:not([data-mode="pomodoro"]) #streakVisual,
+body:not([data-mode="pomodoro"]) #dailyGoal,
+body:not([data-mode="pomodoro"]) #weeklyChart,
+body:not([data-mode="pomodoro"]) #sessionLog,
+body:not([data-mode="pomodoro"]) #advancedStats,
+body:not([data-mode="pomodoro"]) #achievements {
+    display: none;
+}
 
-.ambient-mini-controls {
-    margin-top: 6px;
+/* ================= GLOBAL AMBIENT PLAYER ================= */
+
+.ambient-player{
+
+position:fixed;
+bottom:45px;
+left:80px !important;
+overflow:visible;
+
+width: 340px;
+max-width: 90vw;
+
+position:fixed;   /* referência para o painel */
+
+padding:16px 18px;
+
+border-radius:26px;
+
+background:rgba(255,255,255,0.12);
+backdrop-filter:blur(20px);
+
+border:1px solid rgba(255,255,255,0.25);
+
+box-shadow:0 20px 50px rgba(0,0,0,0.18);
+
+display:flex;
+flex-direction:column;
+gap:10px;
+
+z-index:2000;
+
+}
+
+body.dark .ambient-player {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+}
+
+.ambient-info {
     display: flex;
-    justify-content: center;
-    gap: 8px;
-    opacity: 0.9;
+    flex-direction: column;
 }
 
-.mini-flat-btn {
-    border: none;
-    background: rgba(0,120,255,0.12);
-    padding: 4px 10px;
-    border-radius: 10px;
+#ambientCategory {
+    font-weight: 600;
+    opacity: 0.7;
+}
+
+#ambientTrack {
     font-size: 12px;
+    opacity: 0.6;
+}
+
+.ambient-player-controls {
+    display: flex;
+    gap: 6px;
+}
+
+.ambient-player-controls button {
+
+    border: none;
+    background: rgba(0,120,255,0.15);
+
+    padding: 4px 8px;
+
+    border-radius: 8px;
+
     cursor: pointer;
-    transition: 0.2s ease;
+
+    transition: 0.2s;
 }
 
-.mini-flat-btn:hover {
-    background: rgba(0,120,255,0.25);
+.ambient-player-controls button:hover {
+    background: rgba(0,120,255,0.35);
 }
 
-body.dark .mini-flat-btn {
-    background: rgba(255,255,255,0.12);
+/* =====================================================
+   AMBIENT PLAYER — CONTAINER PRINCIPAL
+   controla posição e aparência do player na tela
+===================================================== */
+
+.ambient-player{
+
+position:fixed;
+bottom:55px;
+left:80px !important;
+overflow:visible;
+
+padding:16px 18px;
+
+border-radius:26px;
+
+background:rgba(255,255,255,0.12);
+backdrop-filter:blur(20px);
+
+border:1px solid rgba(255,255,255,0.25);
+
+box-shadow:0 20px 50px rgba(0,0,0,0.18);
+
+display:flex;
+flex-direction:column;
+
+gap:10px;
+
+z-index:2000;
+
+}
+
+/* =====================================================
+   HEADER DO PLAYER
+   mostra ícone da categoria + nome da música
+===================================================== */
+
+.ambient-main{
+
+display:flex;
+align-items:center;
+gap:10px;
+
+font-size:13px;
+font-weight:600;
+
+cursor:pointer;
+
+}
+
+#ambientIcon{
+font-size:18px;
+}
+
+
+/* =====================================================
+   CONTROLES DO PLAYER
+   botões play / next / prev e volume
+===================================================== */
+
+.ambient-controls-row{
+
+display:flex;
+align-items:center;
+gap:8px;
+
+}
+
+.ambient-controls-row button{
+
+border:none;
+background:rgba(0,120,255,0.12);
+
+padding:4px 10px;
+
+border-radius:10px;
+
+cursor:pointer;
+
+transition:.2s;
+
+}
+
+.ambient-controls-row button:hover{
+background:rgba(0,120,255,0.35);
+}
+
+#ambientVolume{
+width:90px;               /* tamanho do controle de volume */
+}
+
+
+/* =====================================================
+   PAINEL EXPANSÍVEL
+   cresce para cima do player (não cria nova janela)
+===================================================== */
+
+.ambient-panel-new{
+
+position:fixed;
+
+left:50%;
+bottom:140px;
+
+width:520px;
+max-width:90vw;
+
+height:680px;
+max-height:80vh;
+
+padding:18px;
+
+border-radius:28px;
+
+background:rgba(255,255,255,0.75);
+backdrop-filter:blur(12px);
+
+border:1px solid rgba(255,255,255,0.25);
+
+box-shadow:0 30px 80px rgba(0,0,0,0.25);
+
+display:flex;
+flex-direction:column;
+
+gap:12px;
+
+opacity:0;
+
+transform:translate(-50%,40px);
+
+pointer-events:none;
+
+transition:.35s ease;
+
+z-index:3000;
+
+}
+
+.ambient-panel-new.open{
+
+opacity:1;
+transform:translate(118%,0);
+pointer-events:auto;
+
+}
+
+body.dark .ambient-panel-new{
+background:rgba(3, 8, 12, 0.92);
+border:1px solid rgba(255,255,255,0.08);
+}
+
+
+/* =====================================================
+   CARROSSEL DE CATEGORIAS
+   categoria central grande
+   laterais menores
+===================================================== */
+
+.ambient-categories{
+
+display:flex;
+justify-content:center;
+align-items:center;
+gap:18px;
+
+overflow:hidden;
+
+mask-image:linear-gradient(
+to right,
+transparent,
+black 12%,
+black 88%,
+transparent
+);
+
+-webkit-mask-image:linear-gradient(
+to right,
+transparent,
+black 12%,
+black 88%,
+transparent
+);
+
+}
+
+.ambient-category{
+
+opacity:.35;
+transform:scale(.75);
+
+transition:.25s;
+cursor:pointer;
+padding:6px;
+
+}
+
+.ambient-category:hover{
+
+opacity:.9;
+transform:scale(1.05);
+
+}
+
+.ambient-category.center{
+
+opacity:1;
+transform:scale(1.25);
+
+}
+
+
+.ambient-category.side{
+
+opacity:.6;
+transform:scale(.9);
+
+}
+
+/* =====================================================
+   IMAGENS DAS CATEGORIAS
+   aproximadamente 2 cm (~72px)
+===================================================== */
+
+.ambient-category img{
+
+width:96px;
+height:96px;
+
+border-radius:18px;
+
+object-fit:cover;
+
+box-shadow:0 12px 30px rgba(0,0,0,0.25);
+
+transition:.25s;
+
+}
+
+.ambient-category.center img{
+
+border:2px solid rgba(0,120,255,0.6);
+
+}
+
+
+/* =====================================================
+   LISTA DE SONS
+   scroll interno
+===================================================== */
+
+.ambient-sounds{
+
+flex:1;
+
+display:flex;
+flex-direction:column;
+gap:6px;
+
+overflow-y:auto;
+
+max-height:420px;
+
+padding-right:4px;
+
+font-size:13px;
+
+}
+
+
+
+.ambient-sound{
+
+display:grid;
+
+grid-template-columns:40px 1fr 40px;
+
+align-items:center;
+
+gap:10px;
+
+padding:10px 12px;
+
+border-radius:12px;
+
+cursor:pointer;
+
+transition:.2s;
+
+position:relative;
+
+}
+
+.ambient-sound::before{
+
+content:"";
+
+position:absolute;
+
+left:0;
+top:0;
+bottom:0;
+
+width:4px;
+
+border-radius:4px;
+
+background:transparent;
+
+transition:.2s;
+
+}
+
+.ambient-sound.active::before{
+
+background:rgba(0,120,255,0.8);
+
+}
+
+
+
+.ambient-preview{
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+width:34px;
+height:28px;
+
+border-radius:8px;
+
+border:1px solid rgba(0,120,255,0.35);
+
+background:transparent;
+
+font-size:16px;
+
+cursor:pointer;
+
+transition:.2s;
+
+}
+
+.ambient-preview:hover{
+
+opacity:1;
+transform:scale(1.15);
+
+}
+
+
+.ambient-fav{
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+width:34px;
+height:28px;
+
+border-radius:8px;
+
+background:rgba(255,180,0,0.15);
+
+font-size:16px;
+
+cursor:pointer;
+
+transition:.2s;
+
+}
+
+.ambient-fav:hover{
+
+opacity:1;
+transform:scale(1.15);
+
+}
+
+.ambient-sound:hover{
+background:rgba(0,120,255,0.2);
+}
+
+.ambient-sound.active{
+background:rgba(0,120,255,0.35);
+font-weight:600;
+}
+
+
+/* =====================================================
+   SCROLL CUSTOMIZADO
+===================================================== */
+
+.ambient-sounds::-webkit-scrollbar{
+width:6px;
+}
+
+.ambient-sounds::-webkit-scrollbar-thumb{
+background:rgba(0,0,0,.2);
+border-radius:10px;
+}
+
+
+/* =====================================================
+   ANIMAÇÃO DO ÍCONE QUANDO TOCANDO
+===================================================== */
+
+@keyframes ambientPulse{
+
+0%{transform:scale(1);}
+50%{transform:scale(1.15);}
+100%{transform:scale(1);}
+
+}
+
+.ambient-playing{
+animation:ambientPulse 3s infinite ease-in-out;
+}
+
+.ambient-panel-new{
+position:absolute;
+bottom:100%;
+left:0;
+right:0;
+}
+
+/* ===== YOUTUBE SEARCH ===== */
+
+.youtube-search{
+  display:flex;
+  gap:8px;
+  margin-top:6px;
+}
+
+.youtube-search input{
+  flex:1;
+  padding:6px 10px;
+  border-radius:10px;
+  border:1px solid rgba(0,0,0,.15);
+  font-size:13px;
+}
+
+.youtube-search button{
+  padding:6px 12px;
+  border:none;
+  border-radius:10px;
+  background:rgba(0,120,255,.2);
+  cursor:pointer;
+}
+
+.youtube-results{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  max-height:150px;
+  overflow:auto;
+  margin-top:6px;
+}
+
+.youtube-item{
+  display:flex;
+  gap:8px;
+  cursor:pointer;
+  padding:6px;
+  border-radius:10px;
+  transition:.2s;
+}
+
+.youtube-item:hover{
+  background:rgba(0,120,255,.2);
+}
+
+.youtube-thumb{
+  width:60px;
+  height:34px;
+  object-fit:cover;
+  border-radius:6px;
+}
+
+.youtube-title{
+  font-size:12px;
+}
+
+.ambient-preview.preview-active{
+background:rgba(0,120,255,0.35);
+}
+
+.ambient-fav.fav-active{
+background:rgba(255,180,0,0.35);
+transform:scale(1.1);
 }

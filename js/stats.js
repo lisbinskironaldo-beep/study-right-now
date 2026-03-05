@@ -363,7 +363,9 @@ renderAchievements() {
 
     this.checkAchievements();
 
-    if (this.data.unlocked.length === 0) {
+    const unlockedList = this.data.unlocked || [];
+
+    if (unlockedList.length === 0) {
         container.innerHTML = "";
         return;
     }
@@ -374,7 +376,7 @@ renderAchievements() {
     this.achievementsList.forEach(a => {
 
         const unlocked =
-            this.data.unlocked.includes(a.id);
+            unlockedList.includes(a.id);
 
         const badge =
             document.createElement("div");

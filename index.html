@@ -8,6 +8,33 @@
 <link rel="stylesheet" href="css/style.css">
 </head>
 
+<div id="ambientPlayer" class="ambient-player">
+
+    <div id="ambientMain" class="ambient-main">
+        <span id="ambientIcon">🌧</span>
+        <span id="ambientTrack">Nenhum som</span>
+    </div>
+
+    <div class="ambient-controls-row">
+
+        <button id="ambientPrev">⏮</button>
+        <button id="ambientPlay">⏯</button>
+        <button id="ambientNext">⏭</button>
+
+        <input id="ambientVolume" type="range" min="0" max="1" step="0.01">
+
+    </div>
+
+    <div id="ambientPanelNew" class="ambient-panel-new">
+        <div id="ambientCategories" class="ambient-categories"></div>
+        <div id="ambientSounds" class="ambient-sounds"></div>
+    </div>
+
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<div id="youtubePlayer" style="display:none;"></div>
+
 <body>
 
     <div id="customModal" class="custom-modal hidden">
@@ -64,14 +91,6 @@
     <div id="weeklyGoal" class="weekly-goal"></div>
     <div id="studyStats" class="study-stats"></div>
     <div id="levelSystem" class="level-system"></div>
-</div>
-
-    <div id="ambientControls" class="ambient-controls"></div>
-
-    <div id="ambientMiniControls" class="ambient-mini-controls">
-    <button id="prevSound" class="mini-flat-btn">⏮</button>
-    <button id="toggleSound" class="mini-flat-btn">⏯</button>
-    <button id="nextSound" class="mini-flat-btn">⏭</button>
 </div>
 
     <div id="ambientPanel" class="ambient-panel"></div>
@@ -162,6 +181,7 @@
 </footer>
 
 
+<script src="js/eventBus.js"></script>
 <script src="js/app.js"></script>
 <script src="js/clock.js"></script>
 <script src="js/timer.js"></script>

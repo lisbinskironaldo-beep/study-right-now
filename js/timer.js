@@ -8,13 +8,21 @@ const Stopwatch = {
     interval: null,
 
     render() {
+
         Core.state.running = false;
         this.seconds = 0;
+
+        this.display = document.getElementById("timeDisplay");
+        this.date = document.getElementById("dateDisplay");
+
         this.updateDisplay();
-        document.getElementById("dateDisplay").textContent = "Cronômetro";
+
+        if (this.date)
+            this.date.textContent = "Cronômetro";
     },
 
     play() {
+
         if (this.interval) return;
 
         Core.state.running = true;
@@ -26,26 +34,33 @@ const Stopwatch = {
     },
 
     pause() {
+
         clearInterval(this.interval);
         this.interval = null;
         Core.state.running = false;
     },
 
     reset() {
+
         this.pause();
         this.seconds = 0;
         this.updateDisplay();
     },
 
     updateDisplay() {
-        document.getElementById("timeDisplay").textContent =
+
+        if (!this.display) return;
+
+        this.display.textContent =
             this.format(this.seconds);
     },
 
     format(totalSeconds) {
+
         const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
         const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
         const s = String(totalSeconds % 60).padStart(2, "0");
+
         return `${h}:${m}:${s}`;
     }
 };
@@ -67,27 +82,33 @@ const Timer = {
 
         Core.state.running = false;
 
+        this.display = document.getElementById("timeDisplay");
+        this.date = document.getElementById("dateDisplay");
+
         this.total = 0;
         this.remaining = 0;
         this.editing = false;
 
-        document.getElementById("timeDisplay").textContent = "00:00:00";
-        document.getElementById("dateDisplay").textContent = "Timer";
+        if (this.display)
+            this.display.textContent = "00:00:00";
+
+        if (this.date)
+            this.date.textContent = "Timer";
 
         this.attachEditing();
     },
 
     attachEditing() {
 
-        const display = document.getElementById("timeDisplay");
+        if (!this.display) return;
 
-        display.onclick = (e) => {
+        this.display.onclick = (e) => {
 
             if (Core.state.mode !== "timer") return;
 
             this.editing = true;
 
-            const rect = display.getBoundingClientRect();
+            const rect = this.display.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const width = rect.width;
 
@@ -122,39 +143,48 @@ const Timer = {
     },
 
     pause() {
+
         clearInterval(this.interval);
         this.interval = null;
         Core.state.running = false;
     },
 
     reset() {
+
         this.pause();
         this.remaining = this.total;
         this.updateDisplay();
     },
 
     updateDisplay() {
-        document.getElementById("timeDisplay").textContent =
+
+        if (!this.display) return;
+
+        this.display.textContent =
             this.format(this.remaining);
     },
 
     highlight() {
 
-        const display = document.getElementById("timeDisplay");
-        const parts = display.textContent.split(":");
+        if (!this.display) return;
+
+        const parts =
+            this.display.textContent.split(":");
 
         parts[this.editSection] =
             `<span class="highlight">${parts[this.editSection]}</span>`;
 
-        display.innerHTML = parts.join(":");
+        this.display.innerHTML =
+            parts.join(":");
     },
 
     handleNumberInput(num) {
 
         if (!this.editing) return;
 
-        let parts = document.getElementById("timeDisplay")
-            .textContent.split(":")
+        let parts =
+            this.display.textContent
+            .split(":")
             .map(Number);
 
         parts[this.editSection] =
@@ -163,7 +193,9 @@ const Timer = {
         this.setTime(parts);
 
         if (parts[this.editSection] >= 10) {
+
             this.editSection++;
+
             if (this.editSection > 2) {
                 this.editing = false;
                 this.editSection = 0;
@@ -182,21 +214,31 @@ const Timer = {
 
         this.remaining = this.total;
 
-        document.getElementById("timeDisplay").textContent =
-            parts.map(v => String(v).padStart(2, "0")).join(":");
+        if (this.display)
+            this.display.textContent =
+                parts.map(v =>
+                    String(v).padStart(2, "0")
+                ).join(":");
     },
 
     format(totalSeconds) {
+
         const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
         const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
         const s = String(totalSeconds % 60).padStart(2, "0");
+
         return `${h}:${m}:${s}`;
     },
 
     beep() {
+
         const audio = new Audio();
-        audio.src = "https://actions.google.com/sounds/v1/alarms/beep_short.ogg";
+
+        audio.src =
+        "https://actions.google.com/sounds/v1/alarms/beep_short.ogg";
+
         audio.volume = 0.4;
+
         audio.play();
     }
 };
@@ -209,12 +251,10 @@ const Timer = {
 document.addEventListener("keydown", (e) => {
 
     if (
-    e.target.isContentEditable ||
-    e.target.tagName === "INPUT" ||
-    e.target.tagName === "TEXTAREA"
-) {
-    return;
-}
+        e.target.isContentEditable ||
+        e.target.tagName === "INPUT" ||
+        e.target.tagName === "TEXTAREA"
+    ) return;
 
     if (Core.state.mode !== "timer") return;
 
