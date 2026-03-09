@@ -2,11 +2,19 @@
    YOUTUBE PLAYER
 ===================================================== */
 
-const YT_API_KEY=window.YT_API_KEY
+const YT_API_KEY = "AIzaSyA0cotyjGl5YJwbl0SeB73C04lfCRMrJS8"
 
+const ytSearchCache = {}
 async function youtubeSearch(query){
 
 ytCursor = 0
+
+/* CACHE */
+
+if(ytSearchCache[query]){
+renderYoutubeResults(ytSearchCache[query])
+return
+}
 
 const url =
 `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=6&q=${encodeURIComponent(query)}&key=${YT_API_KEY}`
@@ -16,7 +24,25 @@ const data = await res.json()
 
 const results = document.getElementById("youtubeResults")
 
-results.innerHTML = data.items.map(v=>{
+if(!data.items){
+console.log("YouTube API error:", data)
+results.innerHTML=`<div class="ambient-empty">Nenhum resultado</div>`
+return
+}
+
+/* salvar cache */
+
+ytSearchCache[query] = data.items
+
+renderYoutubeResults(data.items)
+
+}
+
+function renderYoutubeResults(items){
+
+const results = document.getElementById("youtubeResults")
+
+results.innerHTML = items.map(v=>{
 
 const id = v.id?.videoId
 if(!id) return ""
@@ -26,14 +52,18 @@ const thumb = v.snippet.thumbnails.medium.url
 
 return `
 <div class="youtube-result" data-id="${id}">
+
+<div class="youtube-thumb-wrapper">
 <img class="youtube-thumb" src="${thumb}">
-<div class="youtube-meta">
-<div class="youtube-title">${title}</div>
-<div class="youtube-actions">
 <button class="yt-play">▶</button>
-<button class="yt-fav">⭐</button>
 </div>
+
+<div class="youtube-title">
+${title.slice(0,60)}
 </div>
+
+<button class="yt-fav ${AmbientEngine.categories.favorites.sounds.find(f=>f.youtube===id)?"fav-on":""}">F</button>
+
 </div>
 `
 
@@ -49,6 +79,10 @@ playYoutube(id)
 }
 
 let ytCursor=0
+
+let ytPresetCursor = 0
+
+let ytPresetMode = false
 
 function bindYoutubeKeyboard(){
 
@@ -105,7 +139,109 @@ playerVars:{
 autoplay:0,
 controls:0,
 rel:0
+},
+
+events:{
+onReady:onYTReady,
+onStateChange:onYTState
 }
+
+})
+
+}
+
+let ytReady=false
+
+function onYTReady(){
+ytReady=true
+}
+
+function onYTState(e){
+
+/* quando começa tocar */
+
+if(e.data===YT.PlayerState.PLAYING){
+
+updateYTTime()
+
+}
+
+}
+
+async function youtubePreset(type){
+
+  const res = await fetch("youtube-catalog.json")
+  const catalog = await res.json()
+
+  const items = catalog[type]
+  if(!items) return
+
+  const results = document.getElementById("youtubeResults")
+  if(!results) return
+
+  results.innerHTML = items.map(v => `
+
+<div class="youtube-result" data-id="${v.id}">
+
+<button class="yt-fav">F</button>
+
+<div class="youtube-thumb-wrapper">
+<img class="youtube-thumb" src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg">
+<button class="yt-play">▶</button>
+</div>
+
+<div class="youtube-title">
+${v.title.slice(0,60)}
+</div>
+
+</div>
+
+`).join("")
+
+  document.querySelectorAll(".yt-play").forEach(btn=>{
+btn.onclick=(e)=>{
+const id=e.target.closest(".youtube-result").dataset.id
+playYoutube(id)
+}
+})
+
+document.querySelectorAll(".yt-fav").forEach(btn=>{
+
+btn.onclick=(e)=>{
+
+e.stopPropagation()
+
+const row = btn.closest(".youtube-result")
+const id = row.dataset.id
+const title = row.querySelector(".youtube-title").textContent
+
+const favs = AmbientEngine.categories.favorites.sounds
+
+const pos = favs.findIndex(v => v.youtube === id)
+
+if(pos === -1){
+
+favs.push({
+name:title,
+youtube:id
+})
+
+btn.classList.add("fav-on")
+
+}else{
+
+favs.splice(pos,1)
+btn.classList.remove("fav-on")
+
+}
+
+localStorage.setItem(
+"ambient_favorites",
+JSON.stringify(favs)
+)
+
+}
+
 })
 
 }
@@ -137,6 +273,14 @@ return
 
 ytPlayer.loadVideoById(id)
 ytPlayer.playVideo()
+
+const seek = document.getElementById("ytSeek")
+const cur = document.getElementById("ytCurrent")
+const dur = document.getElementById("ytDuration")
+
+if(seek) seek.value = 0
+if(cur) cur.textContent = "0:00"
+if(dur) dur.textContent = "0:00"
 
 }
 
@@ -305,6 +449,20 @@ if(t)t.onclick=()=>this.toggle()
 
 play(src){
 
+/* parar qualquer áudio anterior */
+
+if(this.currentAudio){
+this.currentAudio.pause()
+this.currentAudio.currentTime=0
+this.currentAudio=null
+}
+
+/* parar youtube se estiver tocando */
+
+if(typeof ytPlayer!=="undefined" && ytPlayer && ytPlayer.stopVideo){
+ytPlayer.stopVideo()
+}
+
 const sound=this.categories[this.currentCategory].sounds[this.currentIndex]
 
 /* se for youtube */
@@ -312,8 +470,6 @@ const sound=this.categories[this.currentCategory].sounds[this.currentIndex]
 if(sound.youtube){
 
 playYoutube(sound.youtube)
-
-this.currentAudio=null
 
 document.querySelectorAll(".ambient-sound")
 .forEach(r=>r.classList.remove("playing"))
@@ -324,11 +480,7 @@ if(row)row.classList.add("playing")
 return
 }
 
-/* se for arquivo local */
-
-if(this.currentAudio){
-this.fadeOut(this.currentAudio)
-}
+/* áudio local */
 
 const audio=new Audio(src)
 audio.loop=true
@@ -342,7 +494,8 @@ this.fadeIn(audio)
 
 this.currentAudio=audio
 
-document.querySelectorAll(".ambient-sound").forEach(r=>r.classList.remove("playing"))
+document.querySelectorAll(".ambient-sound")
+.forEach(r=>r.classList.remove("playing"))
 
 const row=document.querySelector(`.ambient-sound[data-index="${this.currentIndex}"]`)
 if(row)row.classList.add("playing")
@@ -442,7 +595,9 @@ ${this.categories[key].icon}
 
 container.querySelectorAll(".ambient-category").forEach(cat=>{
 
-cat.onclick=()=>{
+cat.onclick=(e)=>{
+
+e.stopPropagation()
 
 const index=parseInt(cat.dataset.index)
 
@@ -488,12 +643,13 @@ Nenhum favorito ainda
 `
 return
 }
+const favs = this.categories.favorites.sounds
 
-container.innerHTML=sounds.map((s,i)=>`
+container.innerHTML = sounds.map((s,i)=>`
 <div class="ambient-sound" data-cat="${category}" data-index="${i}">
 <span class="ambient-play">▶</span>
 <span class="ambient-title">${s.name}</span>
-<span class="ambient-fav ${this.categories.favorites.sounds.find(f=>f.src===s.src)?"fav-on":""}">
+<span class="ambient-fav ${favs.some(f=>f.src===s.src) ? "fav-on" : ""}">
 F
 </span>
 </div>
@@ -593,13 +749,72 @@ const rows=document.querySelectorAll(".ambient-sound")
 
 if(this.currentCategory==="youtube"){
 
-const search=document.getElementById("youtubeSearch")
+const presets=document.querySelectorAll(".youtube-presets button")
 
-if(e.key==="ArrowDown"){
-if(search){
-search.focus()
+/* entrar no modo presets */
+
+if(e.key==="ArrowDown" && !ytPresetMode){
+
+ytPresetMode=true
+
+presets.forEach(b=>b.classList.remove("cursor"))
+ytPresetCursor=0
+
+if(presets.length){
+presets[ytPresetCursor].classList.add("cursor")
 }
+
 return
+}
+
+/* sair dos presets */
+
+if(e.key==="ArrowUp" && ytPresetMode){
+
+ytPresetMode=false
+
+presets.forEach(b=>b.classList.remove("cursor"))
+
+return
+}
+
+/* navegar dentro dos presets */
+
+if(ytPresetMode){
+
+if(e.key==="ArrowRight"){
+
+ytPresetCursor++
+
+if(ytPresetCursor>=presets.length) ytPresetCursor=0
+
+presets.forEach(b=>b.classList.remove("cursor"))
+presets[ytPresetCursor].classList.add("cursor")
+
+return
+}
+
+if(e.key==="ArrowLeft"){
+
+ytPresetCursor--
+
+if(ytPresetCursor<0) ytPresetCursor=presets.length-1
+
+presets.forEach(b=>b.classList.remove("cursor"))
+presets[ytPresetCursor].classList.add("cursor")
+
+return
+}
+
+if(e.key==="Enter"){
+
+const btn=presets[ytPresetCursor]
+
+if(btn) btn.click()
+
+return
+}
+
 }
 
 }
@@ -816,3 +1031,131 @@ if(!current) return
 current.click()
 
 })
+
+let seeking = false
+
+if(seek){
+
+seek.addEventListener("mousedown",()=>seeking=true)
+seek.addEventListener("mouseup",()=>seeking=false)
+
+seek.addEventListener("input",()=>{
+
+if(!ytPlayer) return
+
+const duration = ytPlayer.getDuration()
+
+if(!duration) return
+
+const time = (seek.value/100) * duration
+
+ytPlayer.seekTo(time,true)
+
+})
+
+}
+
+function formatTime(t){
+
+const m = Math.floor(t/60)
+const s = Math.floor(t%60)
+
+return m + ":" + (s<10 ? "0"+s : s)
+
+}
+
+function updateYTTime(){
+
+setInterval(()=>{
+
+if(!ytPlayer) return
+if(typeof ytPlayer.getDuration !== "function") return
+
+const duration = ytPlayer.getDuration()
+const current = ytPlayer.getCurrentTime()
+
+/* ignora valores bugados */
+
+if(!duration || duration < 1 || duration > 86400) return
+
+const seek = document.getElementById("ytSeek")
+const cur = document.getElementById("ytCurrent")
+const dur = document.getElementById("ytDuration")
+
+function format(t){
+const m = Math.floor(t/60)
+const s = Math.floor(t%60)
+return m + ":" + (s<10 ? "0"+s : s)
+}
+
+if(seek){
+seek.value = (current/duration)*100
+}
+
+if(cur){
+cur.textContent = format(current)
+}
+
+if(dur){
+dur.textContent = format(duration)
+}
+
+},500)
+
+}
+
+const playBtn=document.getElementById("ytPlayPause")
+const backBtn=document.getElementById("ytBack")
+const fwdBtn=document.getElementById("ytForward")
+
+if(playBtn){
+
+playBtn.onclick=()=>{
+
+const state=ytPlayer.getPlayerState()
+
+if(state===1){
+ytPlayer.pauseVideo()
+}else{
+ytPlayer.playVideo()
+}
+
+}
+
+}
+
+if(backBtn){
+
+backBtn.onclick=()=>{
+
+const t=ytPlayer.getCurrentTime()
+ytPlayer.seekTo(t-10,true)
+
+}
+
+}
+
+if(fwdBtn){
+
+fwdBtn.onclick=()=>{
+
+const t=ytPlayer.getCurrentTime()
+ytPlayer.seekTo(t+10,true)
+
+}
+
+}
+
+const ytVolume=document.getElementById("ytVolume")
+
+if(ytVolume){
+
+ytVolume.addEventListener("input",()=>{
+
+if(!ytPlayer) return
+
+ytPlayer.setVolume(parseInt(ytVolume.value))
+
+})
+
+}

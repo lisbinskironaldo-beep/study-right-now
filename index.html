@@ -36,11 +36,49 @@
 
 <div id="ambientYoutube" class="ambient-youtube hidden">
 
+<div class="youtube-presets">
+  <button onclick="youtubePreset('lofi')">Lofi</button>
+  <button onclick="youtubePreset('focus')">Focus</button>
+  <button onclick="youtubePreset('piano')">Piano</button>
+  <button onclick="youtubePreset('rain')">Rain</button>
+  <button onclick="youtubePreset('jazz')">Jazz</button>
+  <button onclick="youtubePreset('ambient')">Ambient</button>
+  <button onclick="youtubePreset('nature')">Nature</button>
+  <button onclick="youtubePreset('white')">White</button>
+</div>
+
 <input id="youtubeSearch"
 placeholder="Buscar ambiente no YouTube..."
 autocomplete="off">
 
 <div id="youtubeResults"></div>
+
+<div id="youtubeControls" class="youtube-controls">
+
+<div class="yt-time">
+
+<span id="ytCurrent">0:00</span>
+
+<input id="ytSeek" type="range" min="0" max="100" value="0">
+
+<span id="ytDuration">0:00</span>
+
+</div>
+
+<div class="yt-buttons">
+
+<button id="ytPrev">⏮</button>
+<button id="ytPlayPause">⏯</button>
+<button id="ytNext">⏭</button>
+
+</div>
+
+<div class="yt-volume">
+
+<input id="ytVolume" type="range" min="0" max="100" value="50">
+</div>
+
+</div>
 
 </div>
 
@@ -203,7 +241,6 @@ autocomplete="off">
 <script src="js/pomodoro.js"></script>
 <script src="js/qts.js"></script>
 <script src="js/stats.js"></script>
-<script src="config.js"></script>
 <script src="js/ambient.js"></script>
 <script src="js/app.js"></script>
 
