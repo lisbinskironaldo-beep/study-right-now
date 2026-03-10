@@ -118,6 +118,25 @@ function bindYoutubeKeyboard(){
 
 const search=document.getElementById("youtubeSearch")
 
+const presets=document.querySelectorAll(".youtube-presets button")
+
+presets.forEach((btn,i)=>{
+
+btn.onclick=()=>{
+
+ytPresetCursor=i
+ytPresetMode=true
+
+presets.forEach(b=>b.classList.remove("cursor"))
+btn.classList.add("cursor")
+
+const type=btn.dataset.preset
+youtubePreset(type)
+
+}
+
+})
+
 search.addEventListener("keydown",(e)=>{
 
 const rows=document.querySelectorAll(".youtube-result")
@@ -149,9 +168,7 @@ youtubeSearch(search.value)
 
 }
 
-rows.forEach((r,i)=>{
-r.classList.toggle("cursor",i===ytCursor)
-})
+rows.forEach(r=>r.classList.remove("cursor"))
 
 })
 
@@ -202,6 +219,8 @@ updateYTTime()
 
 async function youtubePreset(type){
 
+    ytPresetMode = false
+
   const res = await fetch("youtube-catalog.json")
   const catalog = await res.json()
 
@@ -219,7 +238,6 @@ async function youtubePreset(type){
 
 <div class="youtube-thumb-wrapper">
 <img class="youtube-thumb" src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg">
-<button class="yt-play">▶</button>
 </div>
 
 <div class="youtube-title">
@@ -230,11 +248,46 @@ ${v.title.slice(0,60)}
 
 `).join("")
 
-  document.querySelectorAll(".yt-play").forEach(btn=>{
-btn.onclick=(e)=>{
-const id=e.target.closest(".youtube-result").dataset.id
-playYoutube(id)
+ytPresetMode = false
+ytCursor = 0
+
+const rows = document.querySelectorAll(".youtube-result")
+
+document.querySelectorAll(".youtube-result").forEach(row=>{
+
+row.onclick = ()=>{
+
+const rows = [...document.querySelectorAll(".youtube-result")]
+ytCursor = rows.indexOf(row)
+
+const id = row.dataset.id
+
+if(ytPlayer){
+
+const current = ytPlayer.getVideoData().video_id
+
+if(current === id){
+
+const state = ytPlayer.getPlayerState()
+
+if(state === YT.PlayerState.PLAYING){
+ytPlayer.pauseVideo()
+return
 }
+
+if(state === YT.PlayerState.PAUSED){
+ytPlayer.playVideo()
+return
+}
+
+}
+
+}
+
+playYoutube(id)
+
+}
+
 })
 
 document.querySelectorAll(".yt-fav").forEach(btn=>{
@@ -275,6 +328,9 @@ JSON.stringify(favs)
 }
 
 })
+
+const panel = document.getElementById("ambientPanelNew")
+if(panel) panel.focus()
 
 }
 
@@ -336,9 +392,21 @@ return
 ytPlayer.loadVideoById(id)
 ytPlayer.playVideo()
 
+document.querySelectorAll(".youtube-result")
+.forEach(r=>{
+r.classList.remove("playing")
+r.classList.remove("cursor")
+})
+
 const row = document.querySelector(`.youtube-result[data-id="${id}"]`)
 
+const rows = [...document.querySelectorAll(".youtube-result")]
+ytCursor = rows.indexOf(row)
+
 if(row){
+
+row.classList.add("playing")
+row.classList.add("cursor")
 
 const title = row.querySelector(".youtube-title").textContent
 
@@ -601,7 +669,7 @@ if(sound.youtube){
 
 playYoutube(sound.youtube)
 
-document.querySelectorAll(".ambient-sound")
+document.querySelectorAll(".ambient-sound, .youtube-result")
 .forEach(r=>r.classList.remove("playing"))
 
 const row=document.querySelector(`.ambient-sound[data-index="${this.currentIndex}"]`)
@@ -630,7 +698,7 @@ category:this.currentCategory,
 index:this.currentIndex
 }))
 
-document.querySelectorAll(".ambient-sound")
+document.querySelectorAll(".ambient-sound, .youtube-result")
 .forEach(r=>r.classList.remove("playing"))
 
 const row=document.querySelector(`.ambient-sound[data-index="${this.currentIndex}"]`)

@@ -2178,7 +2178,15 @@ margin-top:6px;
 margin-bottom:10px;
 }
 
+.youtube-result.playing{
+background:rgba(90,140,255,0.35);
+border-left:4px solid #3b6cff;
+font-weight:600;
+}
+
 .youtube-result{
+
+cursor:pointer;
 
 display:grid;
 grid-template-columns:34px 100px 1fr;
