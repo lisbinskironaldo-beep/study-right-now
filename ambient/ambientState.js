@@ -22,4 +22,6 @@ history: [],
 
 favorites: JSON.parse(localStorage.getItem("ambient_favorites") || "[]"),
 
+panelMode: 0,
+
 }

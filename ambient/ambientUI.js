@@ -4,18 +4,12 @@ init(){
 
 const root = document.getElementById("ambientRoot")
 root.style.display="block"
+AmbientState.panelMode = 0
+
 
 root.innerHTML = `
 
-<div class="ambient-panel">
-
-<div class="ambient-header">
-<span id="ambientNow">🎧 Focus Sounds</span>
-<button id="ambientShuffle">↻</button>
-</div>
-
-<div id="ambientList" class="ambient-list"></div>
-
+<div id="ambientMini" class="ambient-mini" title="Clique para abrir a biblioteca">
 <div class="ambient-player">
 
 <div class="ambient-progress">
@@ -52,9 +46,52 @@ value="${AmbientState.volume}">
 
 </div>
 
+
+<div class="ambient-panel">
+
+<div class="ambient-header">
+<span id="ambientNow">🎧 Focus Sounds</span>
+<button id="ambientShuffle">↻</button>
+</div>
+
+<div id="ambientList" class="ambient-list"></div>
+
+</div>
+
 `
 
 this.bindControls()
+
+const mini = document.getElementById("ambientMini")
+
+mini.onclick = (e)=>{
+
+if(
+e.target.id === "ambientPlay" ||
+e.target.id === "ambientPrev" ||
+e.target.id === "ambientNext" ||
+e.target.id === "ambientSeek" ||
+e.target.id === "ambientVolume"
+){
+return
+}
+
+const panel = document.querySelector(".ambient-panel")
+if(!panel) return
+
+if(panel.style.display === "flex"){
+
+panel.style.display = "none"
+AmbientState.panelMode = 1
+
+}else{
+
+panel.style.display = "flex"
+AmbientState.panelMode = 0
+
+}
+
+}
 
 },
 

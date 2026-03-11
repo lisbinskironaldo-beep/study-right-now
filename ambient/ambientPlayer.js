@@ -211,12 +211,17 @@ durTxt.textContent=this.formatTime(dur)
 
 formatTime(sec){
 
-sec=Math.floor(sec)
+sec = Math.floor(sec)
 
-const m=Math.floor(sec/60)
-const s=sec%60
+const h = Math.floor(sec / 3600)
+const m = Math.floor((sec % 3600) / 60)
+const s = sec % 60
 
-return m+":"+(s<10?"0"+s:s)
+if(h > 0){
+return h + ":" + (m<10?"0"+m:m) + ":" + (s<10?"0"+s:s)
+}
+
+return m + ":" + (s<10?"0"+s:s)
 
 },
 

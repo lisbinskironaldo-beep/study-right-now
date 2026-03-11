@@ -56,11 +56,34 @@ if(e.altKey && (e.key==="m" || e.key==="M")){
 
 e.preventDefault()
 
-const panel=document.querySelector(".ambient-panel")
-if(!panel) return
+const panel = document.querySelector(".ambient-panel")
+const mini = document.getElementById("ambientMini")
 
-panel.style.display=
-panel.style.display==="none" ? "flex" : "none"
+if(!panel || !mini) return
+
+AmbientState.panelMode++
+
+if(AmbientState.panelMode > 2){
+AmbientState.panelMode = 0
+}
+
+if(AmbientState.panelMode === 0){
+panel.style.display="flex"
+mini.style.display="flex"
+AmbientState.ui.panelOpen = true
+}
+
+if(AmbientState.panelMode === 1){
+panel.style.display="none"
+mini.style.display="flex"
+AmbientState.ui.panelOpen = false
+}
+
+if(AmbientState.panelMode === 2){
+panel.style.display="none"
+mini.style.display="none"
+AmbientState.ui.panelOpen = false
+}
 
 }
 
@@ -115,9 +138,12 @@ AmbientPlayer.toggle()
 if(e.key==="Escape"){
 
 const panel = document.querySelector(".ambient-panel")
-if(!panel) return
+const mini = document.getElementById("ambientMini")
 
-panel.style.display="none"
+if(panel) panel.style.display="none"
+if(mini) mini.style.display="none"
+
+AmbientState.panelMode = 2
 
 }
 
