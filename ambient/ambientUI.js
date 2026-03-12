@@ -12,6 +12,8 @@ root.innerHTML = `
 <div id="ambientMini" class="ambient-mini" title="Clique para abrir a biblioteca">
 <div class="ambient-player">
 
+<button id="ambientHelpBtn" title="Atalhos">⌘</button>
+
 <div class="ambient-progress">
 
 <span id="ambientTimeCurrent">0:00</span>
@@ -23,7 +25,7 @@ max="100"
 value="0"
 step="0.1">
 
-<span id="ambientTimeTotal">0:00</span>
+<span id="ambientTimeTotal">0:00</span>  
 
 </div>
 
@@ -32,6 +34,8 @@ step="0.1">
 <button id="ambientPrev">⏮</button>
 <button id="ambientPlay">▶</button>
 <button id="ambientNext">⏭</button>
+
+
 
 <input id="ambientVolume"
 type="range"

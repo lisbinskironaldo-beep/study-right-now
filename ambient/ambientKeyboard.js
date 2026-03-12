@@ -4,7 +4,50 @@ init(){
 
 document.addEventListener("keydown",(e)=>{
 
+if(e.key === "?"){
 
+e.preventDefault()
+
+let help = document.getElementById("ambientHelp")
+
+if(help){
+help.remove()
+return
+}
+
+help = document.createElement("div")
+help.id="ambientHelp"
+
+help.innerHTML = `
+<div class="ambient-help-box">
+
+<button id="ambientHelpClose">✕</button>
+
+<h3>Keyboard Shortcuts</h3>
+
+<div>ALT + ENTER — favoritar</div>
+<div>ALT + F — favoritos</div>
+<div>ALT + D — nova seleção</div>
+<div>ALT + S — embaralhar</div>
+<div>ALT + T — modo teste</div>
+<div>ALT + M — modos do painel</div>
+<div>↑ ↓ — navegar lista</div>
+<div>← → — trocar música</div>
+<div>ENTER — tocar</div>
+<div>SPACE — play / pause</div>
+<div>ESC — fechar player</div>
+<div>? — painel de atalhos</div>
+
+</div>
+`
+
+document.body.appendChild(help)
+
+document.getElementById("ambientHelpClose").onclick=()=>{
+help.remove()
+}
+
+}
 
 if(
 e.target.tagName==="INPUT" ||
@@ -137,6 +180,13 @@ AmbientPlayer.toggle()
 
 if(e.key==="Escape"){
 
+const help = document.getElementById("ambientHelp")
+
+if(help){
+help.remove()
+return
+}
+
 const panel = document.querySelector(".ambient-panel")
 const mini = document.getElementById("ambientMini")
 
@@ -201,7 +251,7 @@ AmbientUI.renderList()
 
 /* lista favoritos */
 
-if(e.key==="f" || e.key==="F"){
+if(e.altKey && (e.key==="f" || e.key==="F")){
 
 e.preventDefault()
 
@@ -228,6 +278,16 @@ AmbientPlayer.playIndex(0)
 
 }
 
+/* shuffle */
+
+if(e.altKey && (e.key==="s" || e.key==="S")){
+
+e.preventDefault()
+
+AmbientYoutube.buildRandomList()
+
+}
+
 /* discovery */
 
 if(e.altKey && (e.key==="d" || e.key==="D")){
@@ -246,4 +306,56 @@ AmbientYoutube.buildRandomList()
 
 document.addEventListener("DOMContentLoaded",()=>{
 AmbientKeyboard.init()
+})
+
+document.addEventListener("click",(e)=>{
+
+if(e.target.id==="ambientHelpBtn"){
+
+let help = document.getElementById("ambientHelp")
+
+if(help){
+help.remove()
+return
+}
+
+help = document.createElement("div")
+help.id="ambientHelp"
+
+help.innerHTML = `
+
+<div class="ambient-help-box">
+
+<button id="ambientHelpClose">✕</button>
+
+<h3>Keyboard Shortcuts</h3>
+
+<div>ALT + ENTER — favoritar</div>
+<div>ALT + F — favoritos</div>
+<div>ALT + D — nova seleção</div>
+<div>ALT + S — embaralhar</div>
+<div>ALT + T — modo teste</div>
+<div>ALT + M — modos do painel</div>
+<div>↑ ↓ — navegar lista</div>
+<div>← → — trocar música</div>
+<div>ENTER — tocar</div>
+<div>SPACE — play / pause</div>
+<div>ESC — fechar player</div>
+<div>? — painel de atalhos</div>
+
+</div>
+`
+
+document.body.appendChild(help)
+
+const closeBtn=document.getElementById("ambientHelpClose")
+
+if(closeBtn){
+closeBtn.onclick=()=>{
+help.remove()
+}
+}
+
+}
+
 })

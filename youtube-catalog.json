@@ -16,7 +16,6 @@
     {"id":"WPni755-Krg","title":"Deep Focus Music"},
     {"id":"hHW1oY26kxQ","title":"Study Music Alpha Waves"},
     {"id":"6p_yaNFSYao","title":"Concentration Music"},
-    {"id":"q76bMs-NwRk","title":"Brain Power Music"},
     {"id":"k9ts6p63ns0","title":"Deep Work Music"},
     {"id":"B5unCXpegAw","title":"Deep Work Flow"},
     {"id":"4xDzrJKXOOY","title":"Ultra Focus Music"},
@@ -47,7 +46,12 @@
     {"id":"rWEI9y6PElo","title":"Ambient Space Music"},
     {"id":"T9yYg8ZsX4Y","title":"Atmospheric Ambient"},
     {"id":"3JQH0qY3FJ4","title":"Floating Ambient"},
-    {"id":"pZPJ_VN3Iis","title":"Ambient Drone"}
+    {"id":"pZPJ_VN3Iis","title":"Ambient Drone"},
+    {"id":"S7aC7B1pZ5k","title":"Deep Space Ambient 8 Hours"},
+{"id":"XULUBg_ZcAU","title":"Floating Space Ambient"},
+{"id":"m6s0V7L3n1E","title":"Dark Ambient Atmosphere"},
+{"id":"FjHGZj2IjBk","title":"Slow Drone Ambient"},
+{"id":"q0N9bQ6fL9U","title":"Meditation Ambient Soundscape"}
   ],
 
   "nature":[
@@ -55,21 +59,50 @@
     {"id":"xNN7iTA57jM","title":"Nature Ambience"},
     {"id":"kA6m9Vq8R2A","title":"Birdsong Nature"},
     {"id":"Ftm2uv7-Ybw","title":"River Flow"},
-    {"id":"xNN7iTA57jM","title":"Forest Ambience Extended"},
-    {"id":"K7QO7z2hS4s","title":"Calm Nature Atmosphere"}
+    {"id":"K7QO7z2hS4s","title":"Calm Nature Atmosphere"},
+    {"id":"2OEL4P1Rz04","title":"Forest Wind Ambience"},
+{"id":"od6e6m5c5p8","title":"Calm River Stream"},
+{"id":"7zK8yq7vS1Q","title":"Mountain Wind Ambience"},
+{"id":"pP3fK2xUo8I","title":"Night Forest Ambience"},
+{"id":"gVKEM4K8J8A","title":"Jungle Ambience"}
   ],
 
-  "rain":[
+  "rain/fireplace":[
+    {"id":"L_LUpnjgPso","title":"Fireplace Crackling 10 Hours"},
+{"id":"eyU3bRy2x44","title":"Fireplace and Rain"},
+{"id":"0tQh0EJw6Rk","title":"Cabin Fireplace Ambience"},
+{"id":"wzjWIxXBs_s","title":"Fireplace Deep Relax"},
+{"id":"2OEL4P1Rz04","title":"Winter Fireplace"},
     {"id":"mPZkdNFkNps","title":"Rain Sounds for Sleep"},
     {"id":"q76bMs-NwRk","title":"Heavy Rain Ambience"},
     {"id":"OD3F7J2PeYU","title":"Night Rain"},
-    {"id":"lFcSrYw-ARY","title":"Rainstorm Atmosphere"}
+    {"id":"lFcSrYw-ARY","title":"Rainstorm Atmosphere"},
+{"id":"t9hR6MZ9gqA","title":"Heavy Rain and Thunderstorm 8 Hours"},
+{"id":"5qap5aO4i9A","title":"Rainy Night Cafe Ambience"},
+{"id":"4Hg1Kudd_x4","title":"Rainstorm for Sleep 8 Hours"},
+{"id":"0bqfW4Vq-OA","title":"Rain on Window 10 Hours"},
+{"id":"sGkh1W5cbH4","title":"Rain on Tent in Forest 8 Hours"},
+{"id":"nDq6TstdEi8","title":"Rain and Fireplace Cabin Ambience"},
+{"id":"C5ANv-9h3m0","title":"Rain on Window with Thunder"},
+{"id":"oB3vJpYH2Xo","title":"Forest Rainstorm 8 Hours"},
+{"id":"gVKEM4K8J8A","title":"Tropical Rainforest Rain 8 Hours"},
+{"id":"jY5H8c8lems","title":"Lake Cabin Rain Ambience"},
+{"id":"dX7V2GZk9qA","title":"Rain and Distant Thunder"},
+{"id":"lE6RYpe9IT0","title":"Cozy Rain Room Ambience"},
+{"id":"R3qzAqN4q5Q","title":"Rain on Car Roof 8 Hours"},
+{"id":"3pQXH7D3b5k","title":"Storm Rain in Forest"},
+{"id":"vPhg6sc1Mk4","title":"Gentle Rain on Leaves"}
   ],
 
   "white":[
     {"id":"nMfPqeZjc2c","title":"White Noise"},
     {"id":"wzjWIxXBs_s","title":"Brown Noise"},
     {"id":"RqzGzwTY-6w","title":"Pink Noise"},
-    {"id":"8SHf6wmX5MU","title":"Airplane Cabin Noise"}
+    {"id":"8SHf6wmX5MU","title":"Airplane Cabin Noise"},
+    {"id":"nMfPqeZjc2c","title":"White Noise 10 Hours"},
+{"id":"3PZ6Fj1KJ0I","title":"Fan Noise for Sleep"},
+{"id":"c9zN0k5N2cA","title":"Air Conditioner Noise"},
+{"id":"4d9Nn8R9Q2k","title":"Spacecraft Cabin Noise"},
+{"id":"B7f1Q6L6k8M","title":"Deep Brown Noise"}
   ]
 }
