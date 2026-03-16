@@ -10,10 +10,12 @@ AmbientState.panelMode = 0
 root.innerHTML = `
 
 <div id="ambientMini" class="ambient-mini" title="Clique para abrir a biblioteca">
+
 <div class="ambient-player">
 
+<span class="mini-indicator left">❮</span>
 <button id="ambientHelpBtn" title="Atalhos">⌘</button>
-
+<span class="mini-indicator right">❯</span>
 <div class="ambient-progress">
 
 <span id="ambientTimeCurrent">0:00</span>
@@ -67,8 +69,6 @@ value="${AmbientState.volume}">
 
 </div>
 
-<button id="catClose">✕</button>
-
 </div>
 
 
@@ -76,11 +76,34 @@ value="${AmbientState.volume}">
 
 <div class="ambient-header">
 
-<button id="ambientCatBtn" title="Categorias">🎨</button>
+<button id="ambientPanelHide" title="Esconder">
+<svg viewBox="0 0 24 24" width="16" height="16">
+<path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2"/>
+</svg>
+</button>
 
-<span id="ambientNow">Focus Sounds</span>
+<button id="ambientFavBtn" title="Favoritos">
+<svg viewBox="0 0 24 24" width="16" height="16">
+<path d="M12 17l-5 3 1.5-5.5L4 9h5.7L12 4l2.3 5H20l-4.5 5.5L17 20z" fill="currentColor"/>
+</svg>
+</button>
 
-<button id="ambientShuffle">↻</button>
+<button id="ambientCatBtn" title="Categorias">
+<svg viewBox="0 0 24 24" width="16" height="16">
+<circle cx="6" cy="6" r="2" fill="currentColor"/>
+<circle cx="18" cy="6" r="2" fill="currentColor"/>
+<circle cx="6" cy="18" r="2" fill="currentColor"/>
+<circle cx="18" cy="18" r="2" fill="currentColor"/>
+</svg>
+</button>
+
+<button id="ambientShuffle" title="Embaralhar">
+<svg viewBox="0 0 24 24" width="16" height="16">
+<path d="M4 6h4l8 12h4M16 6h4v4" fill="none" stroke="currentColor" stroke-width="2"/>
+</svg>
+</button>
+
+
 
 </div>
 
@@ -93,6 +116,52 @@ value="${AmbientState.volume}">
 this.bindControls()
 
 const mini = document.getElementById("ambientMini")
+
+
+let dragging = false
+let offsetX = 0
+let offsetY = 0
+
+mini.addEventListener("mousedown",(e)=>{
+
+if(e.target.tagName === "BUTTON" || e.target.tagName === "INPUT") return
+
+dragging = true
+mini.classList.add("dragging")
+
+const rect = mini.getBoundingClientRect()
+
+offsetX = e.clientX - rect.left
+offsetY = e.clientY - rect.top
+
+})
+
+document.addEventListener("mousemove",(e)=>{
+
+if(!dragging) return
+
+const x = e.clientX - offsetX
+const y = e.clientY - offsetY
+
+mini.style.left = x + "px"
+mini.style.top = y + "px"
+
+mini.style.bottom = "auto"
+
+})
+
+document.addEventListener("mouseup",()=>{
+
+if(!dragging) return
+
+dragging = false
+mini.classList.remove("dragging")
+
+localStorage.setItem("ambientMiniX",mini.style.left)
+localStorage.setItem("ambientMiniY",mini.style.top)
+
+})
+
 
 mini.onclick = (e)=>{
 
@@ -164,12 +233,7 @@ ${fav ? "★ " : ""}${v.title}
 }).join("")
 
 this.bindItems()
-const now = document.getElementById("ambientNow")
 
-const playing = (AmbientState.visible || []).find(v => v && v.id === AmbientState.currentVideo)
-if(now && playing){
-now.textContent = "🎧 " + playing.title
-}
 
 const panel = document.querySelector(".ambient-panel")
 
@@ -227,37 +291,148 @@ this.renderList()
 
 bindControls(){
 
+
+/* fechar categorias clicando fora */
+
 document.addEventListener("click",(e)=>{
 
-if(e.target.id==="ambientShuffle"){
-AmbientYoutube.buildRandomList()
+const sel = document.getElementById("categorySelector")
+
+if(!sel) return
+if(sel.classList.contains("hidden")) return
+
+const wheel = document.querySelector(".category-wheel")
+
+if(!wheel) return
+
+if(!wheel.contains(e.target) && e.target.id !== "ambientCatBtn"){
+
+sel.classList.add("hidden")
+
 }
 
-if(e.target.id==="ambientCatBtn"){
+})
+
+
+/* fechar categorias com ESC */
+
+document.addEventListener("keydown",(e)=>{
+
+if(e.key !== "Escape") return
+
+const sel = document.getElementById("categorySelector")
+
+if(!sel) return
+
+sel.classList.add("hidden")
+
+})
+
+document.addEventListener("click",(e)=>{
+
+const btn = e.target.closest("button")
+if(!btn) return
+
+const id = btn.id
+
+
+if(id==="ambientFavBtn"){
+
+if(!AmbientState.favoritesMode){
+
+let favList = []
+
+Object.keys(AmbientState.catalog).forEach(cat=>{
+
+const list = AmbientState.catalog[cat]
+
+if(!Array.isArray(list)) return
+
+list.forEach(v=>{
+if(AmbientState.favorites.includes(v.id)){
+favList.push(v)
+}
+})
+
+})
+
+AmbientState.visible = favList
+AmbientState.cursor = 0
+AmbientState.favoritesMode = true
+
+}else{
+
+AmbientState.favoritesMode = false
+AmbientYoutube.buildRandomList()
+
+}
+
+AmbientUI.renderList()
+
+}
+
+
+if(id==="ambientPanelHide"){
+
+const panel = document.querySelector(".ambient-panel")
+
+if(panel){
+panel.style.display="none"
+}
+
+AmbientState.panelMode = 1
+
+}
+
+
+if(id==="ambientShuffle"){
+
+AmbientState.favoritesMode = false
+AmbientYoutube.buildRandomList()
+
+}
+
+
+if(id==="ambientCatBtn"){
 
 const sel = document.getElementById("categorySelector")
 
 if(sel){
-
 sel.classList.toggle("hidden")
-
 }
 
 }
+
 
 if(e.target.id==="ambientPlay"){
-AmbientPlayer.toggle()
+
+if(!AmbientState.currentVideo){
+
+if(AmbientState.visible.length){
+
+AmbientState.cursor = 0
+AmbientPlayer.playIndex(0)
+
+AmbientUI.renderList()
+
 }
 
-if(e.target.id==="ambientNext"){
+return
+}
+
+AmbientPlayer.toggle()
+
+}
+if(id==="ambientNext"){
 AmbientPlayer.next()
 }
 
-if(e.target.id==="ambientPrev"){
+if(id==="ambientPrev"){
 AmbientPlayer.prev()
 }
 
 })
+
 
 const vol=document.getElementById("ambientVolume")
 
@@ -276,6 +451,7 @@ AmbientState.player.setVolume(vol.value*100)
 }
 
 }
+
 
 const seek = document.getElementById("ambientSeek")
 
@@ -296,6 +472,7 @@ AmbientState.player.seekTo(newTime,true)
 
 }
 
+
 document.querySelectorAll(".cat-item").forEach(btn=>{
 
 btn.onclick = ()=>{
@@ -313,22 +490,6 @@ sel.classList.add("hidden")
 }
 
 })
-
-const close = document.getElementById("catClose")
-
-if(close){
-
-close.onclick = ()=>{
-
-const sel = document.getElementById("categorySelector")
-
-if(sel){
-sel.classList.add("hidden")
-}
-
-}
-
-}
 
 }
 

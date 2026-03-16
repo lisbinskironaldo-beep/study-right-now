@@ -1,7 +1,6 @@
 {
   "lofi":[
     {"id":"jfKfPfyJRdk","title":"Lofi Hip Hop Radio"},
-    {"id":"5qap5aO4i9A","title":"Lofi Study Beats"},
     {"id":"DWcJFNfaw9c","title":"Chillhop Radio"},
     {"id":"KgxTzQdtj3c","title":"Late Night Lofi"},
     {"id":"7NOSDKb0HlU","title":"Lofi Jazzhop"},
@@ -24,7 +23,6 @@
 
   "piano":[
     {"id":"1ZYbU82GVz4","title":"Relaxing Piano Music"},
-    {"id":"2OEL4P1Rz04","title":"Soft Piano Instrumental"},
     {"id":"sEQf5lcnj_o","title":"Calm Piano Music"},
     {"id":"Df0h2Z4n5Ns","title":"Emotional Piano"},
     {"id":"M0Yh0R1YFz0","title":"Peaceful Piano Mix"},
@@ -60,7 +58,6 @@
     {"id":"kA6m9Vq8R2A","title":"Birdsong Nature"},
     {"id":"Ftm2uv7-Ybw","title":"River Flow"},
     {"id":"K7QO7z2hS4s","title":"Calm Nature Atmosphere"},
-    {"id":"2OEL4P1Rz04","title":"Forest Wind Ambience"},
 {"id":"od6e6m5c5p8","title":"Calm River Stream"},
 {"id":"7zK8yq7vS1Q","title":"Mountain Wind Ambience"},
 {"id":"pP3fK2xUo8I","title":"Night Forest Ambience"},
@@ -99,8 +96,6 @@
   ],
 
   "white":[
-    {"id":"nMfPqeZjc2c","title":"White Noise"},
-    {"id":"wzjWIxXBs_s","title":"Brown Noise"},
     {"id":"RqzGzwTY-6w","title":"Pink Noise"},
     {"id":"8SHf6wmX5MU","title":"Airplane Cabin Noise"},
     {"id":"nMfPqeZjc2c","title":"White Noise 10 Hours"},

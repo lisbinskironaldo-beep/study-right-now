@@ -37,16 +37,21 @@ Object.values(AmbientState.catalog).forEach(list=>{
 list.forEach(v=>all.push(v))
 })
 
-const shuffled = this.shuffle(all.filter(v => v && v.id))
+const unique = []
+const seen = new Set()
 
-const favBoost = shuffled.filter(v=>AmbientState.favorites.includes(v.id))
-const rest = shuffled.filter(v=>!AmbientState.favorites.includes(v.id))
+all.forEach(v=>{
+if(v && v.id && !seen.has(v.id)){
+seen.add(v.id)
+unique.push(v)
+}
+})
 
-const boosted = [...favBoost, ...rest]
+const shuffled = this.shuffle(unique)
 
 /* evitar repetir músicas recentes */
 
-let filtered = boosted.filter(v => !AmbientState.history.slice(-20).includes(v.id))
+let filtered = shuffled.filter(v => !AmbientState.history.slice(-20).includes(v.id))
 
 if(filtered.length < 8){
 AmbientState.history = []
