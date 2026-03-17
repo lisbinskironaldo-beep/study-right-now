@@ -600,7 +600,7 @@ body[data-mode="clock"] .date-display {
 /* ================= QTS ================= */
 
 #qtsGrid {
-    width: 78%;
+    width: 68%;
     margin: 30px auto;
     gap: 3px;
 }
@@ -2376,4 +2376,27 @@ accent-color:#ff3b30;
 .qts-now {
     background: rgba(0,120,255,0.15) !important;
     outline: 2px solid rgba(0,120,255,0.6);
+}
+
+.qts-templates{
+display:flex;
+justify-content:center;
+gap:10px;
+margin-bottom:15px;
+z-index:10;
+position:relative;
+}
+
+.qts-templates button{
+padding:6px 12px;
+border-radius:12px;
+border:none;
+background:rgba(0,120,255,0.15);
+cursor:pointer;
+font-size:13px;
+transition:.2s;
+}
+
+.qts-templates button:hover{
+background:rgba(0,120,255,0.35);
 }

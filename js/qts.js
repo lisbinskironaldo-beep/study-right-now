@@ -5,6 +5,9 @@ const QTS = {
 
     data: JSON.parse(localStorage.getItem("qts_core_v6")) || {
         showTimeColumn: false,
+        showSunday: true,
+        showSaturday: true,
+
         structure: Array.from({ length: 6 }, () => ({ type: "row" })),
         grid: {}
     },
@@ -17,6 +20,7 @@ const QTS = {
     init() {
         this.normalize();
         this.render();
+
     },
 
     normalize() {
@@ -45,11 +49,29 @@ const QTS = {
                 Quadro Horário
             </h2>
 
+            <div class="qts-templates">
+    <button data-template="estudo">Estudo</button>
+    <button data-template="work">Trabalho</button>
+    <button data-template="gym">Treino</button>
+    <button data-template="clean">Limpo</button>
+</div>
+
             <div style="text-align:center;margin-bottom:15px;">
                 <label>
                     <input type="checkbox" id="toggleTimeCol"
                     ${this.data.showTimeColumn ? "checked":""}>
                     HORÁRIO
+                </label>
+                <label style="margin-left:10px;">
+                    <input type="checkbox" id="toggleSunday"
+                     ${this.data.showSunday ? "checked":""}>
+                    Domingo
+                </label>
+
+                <label style="margin-left:10px;">
+                    <input type="checkbox" id="toggleSaturday"
+                    ${this.data.showSaturday ? "checked":""}>
+                    Sábado
                 </label>
             </div>
 
@@ -69,6 +91,19 @@ const QTS = {
 
         this.bindControls();
         this.buildGrid();
+
+        // templates (sempre rebind após render)
+document.querySelectorAll(".qts-templates button")
+.forEach(btn => {
+
+btn.onclick = () => {
+
+const type = btn.dataset.template
+this.applyTemplate(type)
+
+}
+
+})
     },
 
     bindControls() {
@@ -119,6 +154,26 @@ if (printBtn) {
             this.save();
             this.render();
         };
+
+        const sunday = document.getElementById("toggleSunday")
+
+if(sunday){
+sunday.onchange = (e) => {
+this.data.showSunday = e.target.checked
+this.save()
+this.render()
+}
+}
+
+const saturday = document.getElementById("toggleSaturday")
+
+if(saturday){
+saturday.onchange = (e) => {
+this.data.showSaturday = e.target.checked
+this.save()
+this.render()
+}
+}
 
         document.getElementById("addRowBtn").onclick = () => {
 
@@ -193,9 +248,18 @@ document.getElementById("removeIntervalBtn").onclick = () => {
 
         document.querySelectorAll(".qts-now").forEach(el=>el.classList.remove("qts-now"));
 
-        const columns =
-            (this.data.showTimeColumn ? 1 : 0)
-            + this.days.length;
+        const visibleDays = this.days.filter((d, i) => {
+
+if(i === 0 && !this.data.showSunday) return false
+if(i === 6 && !this.data.showSaturday) return false
+
+return true
+
+})
+
+const columns =
+    (this.data.showTimeColumn ? 1 : 0)
+    + visibleDays.length;
 
         grid.style.display = "grid";
         grid.style.gridTemplateColumns =
@@ -204,9 +268,10 @@ document.getElementById("removeIntervalBtn").onclick = () => {
         if (this.data.showTimeColumn)
             grid.appendChild(this.createHeader("HORÁRIO"));
 
-        this.days.forEach(d =>
-            grid.appendChild(this.createHeader(d))
-        );
+
+visibleDays.forEach(d =>
+    grid.appendChild(this.createHeader(d))
+);
 
         this.data.structure.forEach((item, index) => {
 
@@ -224,11 +289,11 @@ document.getElementById("removeIntervalBtn").onclick = () => {
                     this.createTimeCell(rowIndex)
                 );
 
-            this.days.forEach(day =>
-                grid.appendChild(
-                    this.createEditableCell(rowIndex, day)
-                )
-            );
+            visibleDays.forEach(day =>
+    grid.appendChild(
+        this.createEditableCell(rowIndex, day)
+    )
+);
         });
 
         this.highlightCurrentTime();
@@ -372,6 +437,18 @@ e.stopPropagation()
 
         const cell =
             document.createElement("div");
+            cell.addEventListener("focus", () => {
+                cell._leftOnce = false
+
+const range = document.createRange()
+range.selectNodeContents(cell)
+range.collapse(false)
+
+const sel = window.getSelection()
+sel.removeAllRanges()
+sel.addRange(range)
+
+})
 
         cell.contentEditable = true;
         cell.dataset.row = row;
@@ -391,7 +468,7 @@ if(e.key==="ArrowRight"){
 e.preventDefault()
 
 const next = document.querySelector(
-`#qtsGrid div[data-row="${row}"][data-col="0"]`
+`#qtsGrid div[data-row="${row}"][data-col]:not([data-col="-1"])`
 )
 
 if(next){
@@ -400,21 +477,52 @@ return
 }
 }
 
-// ESQUERDA (não faz nada — evita travar)
 if(e.key==="ArrowLeft"){
-e.preventDefault()
+
+const sel = window.getSelection()
+
+if(sel && sel.rangeCount > 0){
+
+const range = sel.getRangeAt(0)
+
+// se NÃO está no começo → não sai
+if(range.startOffset !== 0){
 return
 }
 
-// BAIXO
+}
+
+e.preventDefault()
+
+// pega a última célula válida da linha
+const cells = document.querySelectorAll(
+`#qtsGrid div[data-row="${row}"][data-col]:not([data-col="-1"])`
+)
+
+if(cells.length > 0){
+cells[cells.length - 1].focus()
+}
+}
+
+// BAIXO (mantém coluna horário)
 if(e.key==="ArrowDown"){
 e.preventDefault()
 
 const next = document.querySelector(
+`#qtsGrid .qts-time[data-row="${row+1}"]`
+)
+
+if(next){
+next.focus()
+return
+}
+
+// fallback → primeira coluna
+const fallback = document.querySelector(
 `#qtsGrid div[data-row="${row+1}"][data-col="0"]`
 )
 
-if(next) next.focus()
+if(fallback) fallback.focus()
 }
 
 // CIMA
@@ -422,10 +530,13 @@ if(e.key==="ArrowUp"){
 e.preventDefault()
 
 const prev = document.querySelector(
-`#qtsGrid div[data-row="${row-1}"][data-col="0"]`
+`#qtsGrid .qts-time[data-row="${row-1}"]`
 )
 
-if(prev) prev.focus()
+if(prev){
+prev.focus()
+return
+}
 }
 
 e.stopPropagation()
@@ -438,12 +549,57 @@ e.stopPropagation()
                 this.data.grid[row]._time;
 
         cell.onblur = () => {
-            this.data.grid[row] =
-                this.data.grid[row] || {};
-            this.data.grid[row]._time =
-                cell.textContent;
-            this.save();
-        };
+
+this.data.grid[row] =
+this.data.grid[row] || {};
+
+this.data.grid[row]._time =
+cell.textContent;
+
+// AUTO GERAR PRÓXIMO HORÁRIO
+const text = cell.textContent.trim()
+
+if(text){
+
+const parts = text.replace("h",":").split(":")
+const h = parseInt(parts[0])
+const m = parseInt(parts[1]) || 0
+
+if(!isNaN(h)){
+
+const nextMinutes = (h * 60 + m) + 60 // +1h padrão
+const nh = Math.floor(nextMinutes / 60)
+const nm = nextMinutes % 60
+
+const nextRow = row + 1
+
+if(!this.data.grid[nextRow]){
+this.data.grid[nextRow] = {}
+}
+
+if(!this.data.grid[nextRow]._time){
+
+this.data.grid[nextRow]._time =
+`${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}`
+
+const nextCell = document.querySelector(
+`#qtsGrid .qts-time[data-row="${nextRow}"]`
+)
+
+if(nextCell){
+nextCell.textContent =
+this.data.grid[nextRow]._time
+}
+
+}
+
+}
+
+}
+
+this.save()
+
+};
 
         return cell;
     },
@@ -452,6 +608,19 @@ e.stopPropagation()
 
         const cell =
             document.createElement("div");
+
+            cell.addEventListener("focus", () => {
+                cell._leftOnce = false
+
+const range = document.createRange()
+range.selectNodeContents(cell)
+range.collapse(false)
+
+const sel = window.getSelection()
+sel.removeAllRanges()
+sel.addRange(range)
+
+})
 
         cell.contentEditable = true;
         
@@ -483,18 +652,47 @@ if(isEditing) return
 
 // DIREITA
 if(e.key==="ArrowRight"){
+
 e.preventDefault()
-if(cell.nextElementSibling){
-cell.nextElementSibling.focus()
+
+const r = parseInt(cell.dataset.row)
+const c = parseInt(cell.dataset.col)
+
+// próxima coluna REAL (não DOM)
+const next = document.querySelector(
+`#qtsGrid div[data-row="${r}"][data-col="${c+1}"]`
+)
+
+if(next){
+next.focus()
 }
+
+// reset esquerda
+cell._leftOnce = false
 }
 
 // ESQUERDA
 if(e.key==="ArrowLeft"){
-e.preventDefault()
-if(cell.previousElementSibling){
-cell.previousElementSibling.focus()
+
+if(!cell._leftOnce){
+cell._leftOnce = true
+return
 }
+
+e.preventDefault()
+
+const r = parseInt(cell.dataset.row)
+const c = parseInt(cell.dataset.col)
+
+const prev = document.querySelector(
+`#qtsGrid div[data-row="${r}"][data-col="${c-1}"]`
+)
+
+if(prev){
+prev.focus()
+}
+
+cell._leftOnce = false
 }
 
 // BAIXO
@@ -586,6 +784,50 @@ el = el.nextElementSibling
 })
 
 setTimeout(()=>this.highlightCurrentTime(), 60000);
+
+},
+
+applyTemplate(type){
+
+if(type === "clean"){
+
+this.data.structure =
+Array.from({ length: 6 }, () => ({ type: "row" }))
+
+this.data.grid = {}
+
+this.save()
+this.render()
+
+return
+}
+
+if(type === "estudo"){
+
+this.data.structure = [
+{ type:"row" },
+{ type:"row" },
+{ type:"row" },
+{ type:"interval", duration:"Intervalo 20min" },
+{ type:"row" },
+{ type:"row" }
+]
+
+this.data.grid = {
+0:{ _time:"07:00" },
+1:{ _time:"08:00" },
+2:{ _time:"09:00" },
+4:{ _time:"10:20" },
+5:{ _time:"11:20" }
+}
+
+this.save()
+this.render()
+
+return
+}
+
+console.log("template:", type)
 
 },
 
