@@ -203,8 +203,6 @@ list.innerHTML = ""
 return
 }
 
-if(!list) return
-
 list.innerHTML = AmbientState.visible.map((v,i)=>{
 
 const fav = AmbientState.favorites.includes(v.id)
@@ -220,10 +218,12 @@ fav ? "favorite" : ""
 }"
 data-id="${v.id}">
 
+<button class="fav-btn ${fav ? "active" : ""}" data-id="${v.id}">★</button>
+
 <img src="https://i.ytimg.com/vi/${v.id}/mqdefault.jpg">
 
 <div class="ambient-title">
-${fav ? "★ " : ""}${v.title}
+${v.title}
 </div>
 
 </div>
@@ -234,13 +234,14 @@ ${fav ? "★ " : ""}${v.title}
 
 this.bindItems()
 
-
 const panel = document.querySelector(".ambient-panel")
 
+const playing = AmbientState.visible.find(
+v => v.id === AmbientState.currentVideo
+)
+
 if(panel && playing && playing.category){
-
 panel.className = "ambient-panel panel-" + playing.category
-
 }
 
 let active = list.querySelector(".ambient-item.playing")
@@ -269,6 +270,26 @@ document.querySelectorAll(".ambient-item")
 
 if(!AmbientState.visible[i]) return
 
+row.querySelector(".fav-btn")?.addEventListener("click",(e)=>{
+
+e.stopPropagation()
+
+const id = e.currentTarget.dataset.id
+
+const idx = AmbientState.favorites.indexOf(id)
+
+if(idx === -1){
+AmbientState.favorites.push(id)
+}else{
+AmbientState.favorites.splice(idx,1)
+}
+
+localStorage.setItem("ambient_favorites",JSON.stringify(AmbientState.favorites))
+
+AmbientUI.renderList()
+
+})
+
 row.onclick=()=>{
 
 if(i === AmbientState.cursor){
@@ -288,6 +309,7 @@ this.renderList()
 })
 
 },
+
 
 bindControls(){
 

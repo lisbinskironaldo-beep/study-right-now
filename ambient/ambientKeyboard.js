@@ -39,9 +39,7 @@ help.innerHTML = `
 
 <div>ALT + ENTER — favoritar</div>
 <div>ALT + F — favoritos</div>
-<div>ALT + D — nova seleção</div>
 <div>ALT + S — embaralhar</div>
-<div>ALT + T — modo teste</div>
 <div>ALT + M — modos do painel</div>
 <div>↑ ↓ — navegar lista</div>
 <div>← → — trocar música</div>
@@ -231,25 +229,24 @@ AmbientPlayer.prev()
 
 /* favoritos */
 
-if(e.altKey && e.key==="Enter"){
+document.addEventListener("keydown",(e)=>{
+
+if(e.altKey && e.key === "Enter"){
 
 e.preventDefault()
 
 const item = AmbientState.visible[AmbientState.cursor]
+
 if(!item) return
 
 const id = item.id
 
-const pos = AmbientState.favorites.indexOf(id)
+const idx = AmbientState.favorites.indexOf(id)
 
-if(pos === -1){
-
+if(idx === -1){
 AmbientState.favorites.push(id)
-
 }else{
-
-AmbientState.favorites.splice(pos,1)
-
+AmbientState.favorites.splice(idx,1)
 }
 
 localStorage.setItem(
@@ -260,6 +257,8 @@ JSON.stringify(AmbientState.favorites)
 AmbientUI.renderList()
 
 }
+
+})
 
 /* lista favoritos */
 
@@ -344,9 +343,7 @@ help.innerHTML = `
 
 <div>ALT + ENTER — favoritar</div>
 <div>ALT + F — favoritos</div>
-<div>ALT + D — nova seleção</div>
 <div>ALT + S — embaralhar</div>
-<div>ALT + T — modo teste</div>
 <div>ALT + M — modos do painel</div>
 <div>↑ ↓ — navegar lista</div>
 <div>← → — trocar música</div>
