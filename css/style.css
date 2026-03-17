@@ -662,7 +662,7 @@ body.dark .qts-time {
 .qts-interval {
     background: #eaeaea;
     font-weight: 600;
-    cursor: grab;
+    cursor: pointer;
 }
 
 .qts-interval:hover {
@@ -2371,4 +2371,9 @@ cursor:pointer;
 
 accent-color:#ff3b30;
 
+}
+
+.qts-now {
+    background: rgba(0,120,255,0.15) !important;
+    outline: 2px solid rgba(0,120,255,0.6);
 }

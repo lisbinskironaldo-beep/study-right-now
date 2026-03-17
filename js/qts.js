@@ -191,6 +191,8 @@ document.getElementById("removeIntervalBtn").onclick = () => {
 
         grid.innerHTML = "";
 
+        document.querySelectorAll(".qts-now").forEach(el=>el.classList.remove("qts-now"));
+
         const columns =
             (this.data.showTimeColumn ? 1 : 0)
             + this.days.length;
@@ -228,6 +230,8 @@ document.getElementById("removeIntervalBtn").onclick = () => {
                 )
             );
         });
+
+        this.highlightCurrentTime();
     },
 
     createHeader(text) {
@@ -240,36 +244,127 @@ document.getElementById("removeIntervalBtn").onclick = () => {
     createIntervalRow(columns, index) {
 
         const cell = document.createElement("div");
+        cell.contentEditable = true;
+        cell.tabIndex = 0;
+cell.dataset.row = index;
+cell.dataset.col = -1;
 
-        cell.textContent = "INTERVALO";
+        const value = this.data.structure[index].duration || "Intervalo";
+
+cell.innerHTML = `<span class="qts-interval-label">${value}</span>`;
+
+cell.addEventListener("click",(e)=>{
+
+// se foi arraste, ignora clique
+if(cell._dragging) return
+
+e.stopPropagation()
+
+this.openIntervalPicker(cell, index)
+
+})
+
         cell.style.gridColumn = `span ${columns}`;
         cell.classList.add("qts-interval");
-        cell.draggable = true;
 
-        cell.ondragstart = (e) => {
-            e.dataTransfer.setData("intervalIndex", index);
-        };
+        cell.onblur = () => {
+    this.data.structure[index].duration = cell.textContent;
+    this.save();
+};
 
-        cell.ondragover = (e) => e.preventDefault();
 
-        cell.ondrop = (e) => {
-            e.preventDefault();
+cell.addEventListener("keydown",(e)=>{
 
-            const from =
-                Number(e.dataTransfer.getData("intervalIndex"));
+if(e.key==="Enter" && !e.shiftKey){
+e.preventDefault()
+cell.blur()
+return
+}
 
-            if (isNaN(from)) return;
+// DIREITA = TAB
+if(e.key==="ArrowRight"){
+e.preventDefault()
 
-            const item =
-                this.data.structure[from];
+const all = [...document.querySelectorAll('#qtsGrid div[contenteditable="true"]')]
+const index = all.indexOf(cell)
 
-            this.data.structure.splice(from,1);
-            this.data.structure.splice(index,0,item);
+const next = all[index + 1]
 
-            this.save();
-            this.render();
-        };
+if(next) next.focus()
+}
 
+// ESQUERDA = SHIFT+TAB
+if(e.key==="ArrowLeft"){
+e.preventDefault()
+
+const all = [...document.querySelectorAll('#qtsGrid div[data-col]')]
+
+const prev = all[index - 1]
+
+if(prev) prev.focus()
+}
+
+// BAIXO
+if(e.key==="ArrowDown"){
+e.preventDefault()
+
+let r = parseInt(cell.dataset.row)
+const c = parseInt(cell.dataset.col)
+
+let next = null
+
+while(!next){
+
+r++
+
+if(r > 50) break
+
+const test = document.querySelector(
+`#qtsGrid div[data-row="${r}"][data-col="${c}"]`
+)
+
+if(test){
+next = test
+break
+}
+
+}
+
+if(next) next.focus()
+}
+
+// CIMA
+if(e.key==="ArrowUp"){
+e.preventDefault()
+
+let r = parseInt(cell.dataset.row)
+const c = parseInt(cell.dataset.col)
+
+let prev = null
+
+while(!prev){
+
+r--
+
+if(r < 0) break
+
+const test = document.querySelector(
+`#qtsGrid div[data-row="${r}"][data-col="${c}"]`
+)
+
+if(test){
+prev = test
+break
+}
+
+}
+
+if(prev) prev.focus()
+}
+
+e.stopPropagation()
+
+})
         return cell;
     },
 
@@ -279,6 +374,63 @@ document.getElementById("removeIntervalBtn").onclick = () => {
             document.createElement("div");
 
         cell.contentEditable = true;
+        cell.dataset.row = row;
+cell.dataset.col = -1;
+        cell.tabIndex = 0;
+
+cell.addEventListener("keydown",(e)=>{
+
+if(e.key==="Enter" && !e.shiftKey){
+e.preventDefault()
+cell.blur()
+return
+}
+
+// DIREITA (vai para primeira célula da linha)
+if(e.key==="ArrowRight"){
+e.preventDefault()
+
+const next = document.querySelector(
+`#qtsGrid div[data-row="${row}"][data-col="0"]`
+)
+
+if(next){
+next.focus()
+return
+}
+}
+
+// ESQUERDA (não faz nada — evita travar)
+if(e.key==="ArrowLeft"){
+e.preventDefault()
+return
+}
+
+// BAIXO
+if(e.key==="ArrowDown"){
+e.preventDefault()
+
+const next = document.querySelector(
+`#qtsGrid div[data-row="${row+1}"][data-col="0"]`
+)
+
+if(next) next.focus()
+}
+
+// CIMA
+if(e.key==="ArrowUp"){
+e.preventDefault()
+
+const prev = document.querySelector(
+`#qtsGrid div[data-row="${row-1}"][data-col="0"]`
+)
+
+if(prev) prev.focus()
+}
+
+e.stopPropagation()
+
+})
         cell.classList.add("qts-time");
 
         if (this.data.grid[row]?._time)
@@ -302,6 +454,81 @@ document.getElementById("removeIntervalBtn").onclick = () => {
             document.createElement("div");
 
         cell.contentEditable = true;
+        
+cell.dataset.navIndex = 
+document.querySelectorAll('#qtsGrid div[contenteditable="true"]').length;
+cell.tabIndex = 0;
+cell.dataset.row = row;
+cell.dataset.col = this.days.indexOf(day);
+
+cell.addEventListener("keydown",(e)=>{
+
+// ENTER = salva (blur)
+if(e.key==="Enter" && !e.shiftKey){
+e.preventDefault()
+cell.blur()
+return
+}
+
+// SHIFT+ENTER = quebra de linha
+if(e.key==="Enter" && e.shiftKey){
+return
+}
+
+// SETAS só funcionam se NÃO estiver editando texto
+const sel = window.getSelection()
+const isEditing = sel && sel.anchorOffset !== cell.textContent.length
+
+if(isEditing) return
+
+// DIREITA
+if(e.key==="ArrowRight"){
+e.preventDefault()
+if(cell.nextElementSibling){
+cell.nextElementSibling.focus()
+}
+}
+
+// ESQUERDA
+if(e.key==="ArrowLeft"){
+e.preventDefault()
+if(cell.previousElementSibling){
+cell.previousElementSibling.focus()
+}
+}
+
+// BAIXO
+if(e.key==="ArrowDown"){
+e.preventDefault()
+
+const r = parseInt(cell.dataset.row)
+const c = parseInt(cell.dataset.col)
+
+const next = document.querySelector(
+`#qtsGrid div[data-row="${r+1}"][data-col="${c}"]`
+)
+
+if(next) next.focus()
+}
+
+// CIMA
+if(e.key==="ArrowUp"){
+e.preventDefault()
+
+const r = parseInt(cell.dataset.row)
+const c = parseInt(cell.dataset.col)
+
+const prev = document.querySelector(
+`#qtsGrid div[data-row="${r-1}"][data-col="${c}"]`
+)
+
+if(prev) prev.focus()
+}
+
+// bloquear sistema global
+e.stopPropagation()
+
+})
 
         if (this.data.grid[row]?.[day])
             cell.textContent =
@@ -317,6 +544,50 @@ document.getElementById("removeIntervalBtn").onclick = () => {
 
         return cell;
     },
+    
+   highlightCurrentTime(){
+
+if(!this.data.showTimeColumn) return
+
+const times = document.querySelectorAll(".qts-time")
+if(!times.length) return
+
+document.querySelectorAll(".qts-now").forEach(el=>el.classList.remove("qts-now"));
+
+const now = new Date()
+const currentMinutes = now.getHours()*60 + now.getMinutes()
+
+times.forEach((cell)=>{
+
+const text = cell.textContent.trim()
+if(!text) return
+
+const parts = text.replace("h",":").split(":")
+const h = parseInt(parts[0])
+const m = parseInt(parts[1]) || 0
+
+if(isNaN(h)) return
+
+const minutes = h*60 + m
+
+if(currentMinutes >= minutes){
+
+let el = cell
+
+while(el && !el.classList.contains("qts-header")){
+
+el.classList.add("qts-now")
+el = el.nextElementSibling
+
+}
+
+}
+
+})
+
+setTimeout(()=>this.highlightCurrentTime(), 60000);
+
+},
 
     save() {
         localStorage.setItem(
