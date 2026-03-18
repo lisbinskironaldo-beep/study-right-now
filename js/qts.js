@@ -115,26 +115,96 @@ if (printBtn) {
 
         const printContent =
             document.getElementById("qtsGrid").outerHTML;
+            
 
         const win = window.open("", "", "width=900,height=700");
-
+document.querySelectorAll("#qtsModule h2").forEach((el,i)=>{
+if(i>0) el.remove()
+})
         win.document.write(`
             <html>
             <head>
                 <title>Quadro Horário</title>
                 <style>
-                    body { font-family: sans-serif; padding: 20px; }
-                    #qtsGrid {
-                        display: grid;
-                        gap: 4px;
-                    }
-                    #qtsGrid > div {
-                        border: 1px solid #ccc;
-                        padding: 8px;
-                        text-align: center;
-                        min-height: 35px;
-                    }
-                </style>
+
+
+body {
+font-family: Inter, sans-serif;
+padding: 20px;
+background: white;
+color: #111;
+zoom: 0.9;
+}
+
+/* TÍTULO */
+h2{
+text-align: center;
+font-size: 380% !important;
+font-weight: 700;
+margin-bottom: 20px;
+}
+
+/* GRID */
+#qtsGrid {
+display: grid;
+gap: 4px;
+width: 100%;
+table-layout: fixed;
+}
+
+/* CÉLULAS BASE */
+#qtsGrid > div {
+font-size: 30px;
+line-height: 1.1;
+border-radius: 4px;
+padding: 4px 6px;
+text-align: center;
+min-height: 32px;
+height: auto;
+display:flex;
+align-items:center;
+justify-content:center;
+white-space: normal;
+word-break: normal;
+overflow-wrap: break-word;
+border: 1px solid #bbb;
+}
+
+/* HEADER */
+.qts-header{
+font-size: 15px;
+background: #e9eef5;
+font-weight: 700;
+}
+
+/* HORÁRIO */
+.qts-time{
+font-size: 28px;
+background: #f2f6ff;
+font-weight: 600;
+}
+
+/* INTERVALO */
+.qts-interval{
+background: #949393;
+font-style: italic;
+font-size: 28px;
+height: 22px; /* menor que as outras */
+}
+
+/* DESTAQUE */
+.qts-now{
+background: #dbeaff !important;
+outline: 1px solid #0078ff;
+}
+
+/* LIMPEZA */
+*{
+box-shadow:none !important;
+backdrop-filter:none !important;
+}
+
+</style>
             </head>
             <body>
                 <h2>Quadro Horário</h2>
@@ -289,9 +359,9 @@ visibleDays.forEach(d =>
                     this.createTimeCell(rowIndex)
                 );
 
-            visibleDays.forEach(day =>
+visibleDays.forEach((day, colIndex) =>
     grid.appendChild(
-        this.createEditableCell(rowIndex, day)
+        this.createEditableCell(rowIndex, day, colIndex)
     )
 );
         });
@@ -340,89 +410,26 @@ this.openIntervalPicker(cell, index)
 
 cell.addEventListener("keydown",(e)=>{
 
-if(e.key==="Enter" && !e.shiftKey){
-e.preventDefault()
-cell.blur()
-return
-}
+const r = parseInt(cell.dataset.row)
 
-// DIREITA = TAB
-if(e.key==="ArrowRight"){
-e.preventDefault()
-
-const all = [...document.querySelectorAll('#qtsGrid div[contenteditable="true"]')]
-const index = all.indexOf(cell)
-
-const next = all[index + 1]
-
-if(next) next.focus()
-}
-
-// ESQUERDA = SHIFT+TAB
-if(e.key==="ArrowLeft"){
-e.preventDefault()
-
-const all = [...document.querySelectorAll('#qtsGrid div[data-col]')]
-
-const prev = all[index - 1]
-
-if(prev) prev.focus()
-}
-
-// BAIXO
+// BAIXO → vai pra próxima linha válida
 if(e.key==="ArrowDown"){
 e.preventDefault()
 
-let r = parseInt(cell.dataset.row)
-const c = parseInt(cell.dataset.col)
-
-let next = null
-
-while(!next){
-
-r++
-
-if(r > 50) break
-
-const test = document.querySelector(
-`#qtsGrid div[data-row="${r}"][data-col="${c}"]`
+let next = document.querySelector(
+`#qtsGrid div[data-row="${r+1}"][data-col="0"]`
 )
-
-if(test){
-next = test
-break
-}
-
-}
 
 if(next) next.focus()
 }
 
-// CIMA
+// CIMA → mesma lógica
 if(e.key==="ArrowUp"){
 e.preventDefault()
 
-let r = parseInt(cell.dataset.row)
-const c = parseInt(cell.dataset.col)
-
-let prev = null
-
-while(!prev){
-
-r--
-
-if(r < 0) break
-
-const test = document.querySelector(
-`#qtsGrid div[data-row="${r}"][data-col="${c}"]`
+let prev = document.querySelector(
+`#qtsGrid div[data-row="${r-1}"][data-col="0"]`
 )
-
-if(test){
-prev = test
-break
-}
-
-}
 
 if(prev) prev.focus()
 }
@@ -508,35 +515,55 @@ cells[cells.length - 1].focus()
 if(e.key==="ArrowDown"){
 e.preventDefault()
 
-const next = document.querySelector(
-`#qtsGrid .qts-time[data-row="${row+1}"]`
+let r = row + 1
+let next = null
+
+while(!next){
+
+if(r > 50) break
+
+next = document.querySelector(
+`#qtsGrid .qts-time[data-row="${r}"]`
 )
 
-if(next){
-next.focus()
-return
+// se não achou horário, tenta célula normal
+if(!next){
+next = document.querySelector(
+`#qtsGrid div[data-row="${r}"][data-col="0"]`
+)
 }
 
-// fallback → primeira coluna
-const fallback = document.querySelector(
-`#qtsGrid div[data-row="${row+1}"][data-col="0"]`
-)
+r++
+}
 
-if(fallback) fallback.focus()
+if(next) next.focus()
 }
 
 // CIMA
 if(e.key==="ArrowUp"){
 e.preventDefault()
 
-const prev = document.querySelector(
-`#qtsGrid .qts-time[data-row="${row-1}"]`
+let r = row - 1
+let prev = null
+
+while(!prev){
+
+if(r < 0) break
+
+prev = document.querySelector(
+`#qtsGrid .qts-time[data-row="${r}"]`
 )
 
-if(prev){
-prev.focus()
-return
+if(!prev){
+prev = document.querySelector(
+`#qtsGrid div[data-row="${r}"][data-col="0"]`
+)
 }
+
+r--
+}
+
+if(prev) prev.focus()
 }
 
 e.stopPropagation()
@@ -556,18 +583,35 @@ this.data.grid[row] || {};
 this.data.grid[row]._time =
 cell.textContent;
 
-// AUTO GERAR PRÓXIMO HORÁRIO
 const text = cell.textContent.trim()
 
 if(text){
 
+let h = 0
+let m = 0
+
+if(text.includes(":")){
 const parts = text.replace("h",":").split(":")
-const h = parseInt(parts[0])
-const m = parseInt(parts[1]) || 0
+h = parseInt(parts[0])
+m = parseInt(parts[1]) || 0
+}else{
+h = parseInt(text)
+m = 0
+}
 
 if(!isNaN(h)){
 
-const nextMinutes = (h * 60 + m) + 60 // +1h padrão
+// NORMALIZA A CÉLULA ATUAL
+const formatted =
+`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`
+
+cell.textContent = formatted
+
+this.data.grid[row]._time = formatted
+
+// AUTO GERAR PRÓXIMO
+const nextMinutes = (h * 60 + m) + 60
+
 const nh = Math.floor(nextMinutes / 60)
 const nm = nextMinutes % 60
 
@@ -579,22 +623,22 @@ this.data.grid[nextRow] = {}
 
 if(!this.data.grid[nextRow]._time){
 
-this.data.grid[nextRow]._time =
+const nextFormatted =
 `${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}`
+
+this.data.grid[nextRow]._time = nextFormatted
 
 const nextCell = document.querySelector(
 `#qtsGrid .qts-time[data-row="${nextRow}"]`
 )
 
 if(nextCell){
-nextCell.textContent =
-this.data.grid[nextRow]._time
+nextCell.textContent = nextFormatted
 }
 
 }
 
 }
-
 }
 
 this.save()
@@ -604,7 +648,7 @@ this.save()
         return cell;
     },
 
-    createEditableCell(row, day) {
+    createEditableCell(row, day, colIndex) {
 
         const cell =
             document.createElement("div");
@@ -628,7 +672,7 @@ cell.dataset.navIndex =
 document.querySelectorAll('#qtsGrid div[contenteditable="true"]').length;
 cell.tabIndex = 0;
 cell.dataset.row = row;
-cell.dataset.col = this.days.indexOf(day);
+cell.dataset.col = colIndex;
 
 cell.addEventListener("keydown",(e)=>{
 
@@ -644,88 +688,57 @@ if(e.key==="Enter" && e.shiftKey){
 return
 }
 
-// SETAS só funcionam se NÃO estiver editando texto
 const sel = window.getSelection()
-const isEditing = sel && sel.anchorOffset !== cell.textContent.length
 
-if(isEditing) return
+let atStart = false
+let atEnd = false
 
-// DIREITA
-if(e.key==="ArrowRight"){
+if(sel && sel.rangeCount > 0){
 
-e.preventDefault()
+const range = sel.getRangeAt(0)
+
+// força leitura correta independente de nodes
+const pre = range.cloneRange()
+pre.selectNodeContents(cell)
+pre.setEnd(range.startContainer, range.startOffset)
+
+atStart = pre.toString().length === 0
+
+const post = range.cloneRange()
+post.selectNodeContents(cell)
+post.setStart(range.endContainer, range.endOffset)
+
+atEnd = post.toString().length === 0
+}
 
 const r = parseInt(cell.dataset.row)
 const c = parseInt(cell.dataset.col)
 
-// próxima coluna REAL (não DOM)
-const next = document.querySelector(
-`#qtsGrid div[data-row="${r}"][data-col="${c+1}"]`
-)
-
-if(next){
-next.focus()
-}
-
-// reset esquerda
-cell._leftOnce = false
+// DIREITA
+if(e.key==="ArrowRight"){
+if(!atEnd) return
+e.preventDefault()
+this.navigateCell(r, c, "right")
 }
 
 // ESQUERDA
 if(e.key==="ArrowLeft"){
-
-if(!cell._leftOnce){
-cell._leftOnce = true
-return
-}
-
+if(!atStart) return
 e.preventDefault()
-
-const r = parseInt(cell.dataset.row)
-const c = parseInt(cell.dataset.col)
-
-const prev = document.querySelector(
-`#qtsGrid div[data-row="${r}"][data-col="${c-1}"]`
-)
-
-if(prev){
-prev.focus()
-}
-
-cell._leftOnce = false
+this.navigateCell(r, c, "left")
 }
 
 // BAIXO
 if(e.key==="ArrowDown"){
 e.preventDefault()
-
-const r = parseInt(cell.dataset.row)
-const c = parseInt(cell.dataset.col)
-
-const next = document.querySelector(
-`#qtsGrid div[data-row="${r+1}"][data-col="${c}"]`
-)
-
-if(next) next.focus()
+this.navigateCell(r, c, "down")
 }
 
 // CIMA
 if(e.key==="ArrowUp"){
 e.preventDefault()
-
-const r = parseInt(cell.dataset.row)
-const c = parseInt(cell.dataset.col)
-
-const prev = document.querySelector(
-`#qtsGrid div[data-row="${r-1}"][data-col="${c}"]`
-)
-
-if(prev) prev.focus()
+this.navigateCell(r, c, "up")
 }
-
-// bloquear sistema global
-e.stopPropagation()
-
 })
 
         if (this.data.grid[row]?.[day])
@@ -836,7 +849,42 @@ console.log("template:", type)
             "qts_core_v6",
             JSON.stringify(this.data)
         );
-    }
+    },
+
+navigateCell(row, col, direction){
+
+let r = row
+let c = col
+
+while(true){
+
+if(direction === "down") r++
+if(direction === "up") r--
+if(direction === "right") c++
+if(direction === "left") c--
+
+if(r < 0 || r > 50) return
+
+let target = document.querySelector(
+`#qtsGrid div[data-row="${r}"][data-col="${c}"]`
+)
+
+if(target){
+target.focus()
+return
+}
+
+const interval = document.querySelector(
+`#qtsGrid div.qts-interval[data-row="${r}"]`
+)
+
+if(interval){
+continue
+}
+
+}
+}
+    
 };
 
 document.addEventListener("DOMContentLoaded", () => {

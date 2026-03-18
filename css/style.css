@@ -600,16 +600,29 @@ body[data-mode="clock"] .date-display {
 /* ================= QTS ================= */
 
 #qtsGrid {
-    width: 68%;
+     width: fit-content;
+    max-width: 75%;
     margin: 30px auto;
-    gap: 3px;
+    gap: 4px;
+
+    padding: 10px;
+    border-radius: 16px;
+
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+body.dark #qtsGrid{
+    background: rgba(255,255,255,0.05);
 }
 
 #qtsGrid > div {
     min-height: 35px;
     border: px solid rgba(0,0,0,0.08);
     border-radius: 4px;
-    display: flex;
+    display: inline-grid;
     align-items: center;
     justify-content: center;
     transition: background 0.2s ease;
@@ -640,8 +653,9 @@ body.dark .qts-header {
 }
 
 #qtsGrid div[contenteditable="true"]:focus {
-    border: 1px solid rgba(0,120,255,0.5);
-    box-shadow: 0 0 0 2px rgba(0,120,255,0.15);
+    border: 1px solid rgba(0,120,255,0.6);
+    box-shadow: 0 0 0 3px rgba(0,120,255,0.2);
+    transform: scale(1.02);
 }
 
 body.dark #qtsGrid div[contenteditable="true"] {
@@ -683,6 +697,58 @@ body.dark .qts-interval:hover {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+/* ===== QTS CONTROLES MELHORADOS ===== */
+
+.qts-controls{
+gap:40px;
+}
+
+.row-control{
+padding:4px;
+gap:6px;
+}
+
+/* LINHAS = azul */
+.row-control:first-child{
+background: rgba(0,120,255,0.12);
+}
+
+/* INTERVALOS = verde */
+.row-control:last-child{
+background: rgba(0,180,120,0.12);
+}
+
+.row-btn{
+border-radius:10px;
+width:34px;
+height:26px;
+font-size:18px;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+/* hover mais claro */
+.row-btn:hover{
+transform: scale(1.08);
+filter: brightness(1.05);
+}
+
+.qts-interval{
+background: linear-gradient(90deg, #dcdcdc, #eaeaea);
+font-style: italic;
+letter-spacing: 0.5px;
+opacity: 0.9;
+}
+
+body.dark .qts-interval{
+background: linear-gradient(90deg, #2a2a2a, #333);
+}
+
+#qtsGrid > div:hover{
+background: rgba(0,120,255,0.08);
 }
 
 .qts-controls .row-control + .row-control {
@@ -743,6 +809,25 @@ body.dark .row-control {
 
 body.dark .interval-btn {
     background: #1f3a5c;
+}
+
+/* BOTÃO PRINT MELHORADO */
+#printQtsBtn{
+background: linear-gradient(135deg, #4da3ff, #0078ff);
+color: white;
+
+box-shadow:
+0 8px 20px rgba(0,120,255,0.35),
+inset 0 1px 0 rgba(255,255,255,0.3);
+
+border: 1px solid rgba(255,255,255,0.2);
+}
+
+#printQtsBtn:hover{
+transform: scale(1.08);
+box-shadow:
+0 12px 30px rgba(0,120,255,0.5),
+inset 0 1px 0 rgba(255,255,255,0.4);
 }
 
 /* ================= MINI ANALOG CLOCK ================= */
