@@ -4,6 +4,7 @@ const QTS = {
     maxIntervals: 5,
 
     data: JSON.parse(localStorage.getItem("qts_core_v6")) || {
+        studyDuration: 25,
         showTimeColumn: false,
         showSunday: true,
         showSaturday: true,
@@ -50,10 +51,14 @@ const QTS = {
             </h2>
 
             <div class="qts-templates">
-    <button data-template="estudo">Estudo</button>
-    <button data-template="work">Trabalho</button>
-    <button data-template="gym">Treino</button>
-    <button data-template="clean">Limpo</button>
+<button data-template="pomo25">🍅 25/5</button>
+<button data-template="deep50">🔥 50/15</button>
+<button data-template="flow52">🧠 52/17</button>
+<button data-template="ultra90">⚡ 90/30</button>
+<button data-template="sprint15">🚀 15/5</button>
+<button data-template="progressivo">📈 Progressivo</button>
+<button data-template="custom">⚙ Custom</button>
+<button data-template="clean">🧼 Limpo</button>
 </div>
 
             <div style="text-align:center;margin-bottom:15px;">
@@ -384,10 +389,39 @@ visibleDays.forEach((day, colIndex) =>
 cell.dataset.row = index;
 cell.dataset.col = -1;
 
-        const value = this.data.structure[index].duration || "Intervalo";
+    const value = this.data.structure[index].duration || "Intervalo";
 
-cell.innerHTML = `<span class="qts-interval-label">${value}</span>`;
+const prevRowIndex = index - 1
+const nextRowIndex = index + 1
 
+let label = value
+
+const prevTime = this.data.grid[prevRowIndex]?._time
+const nextTime = this.data.grid[nextRowIndex]?._time
+
+if(prevTime && nextTime){
+
+// fim do estudo = horário da próxima linha - pausa
+const partsPrev = prevTime.split(":")
+const h = parseInt(partsPrev[0])
+const m = parseInt(partsPrev[1]) || 0
+
+const study = this.data.structure[prevRowIndex]?.duration || this.data.studyDuration || 25
+
+const endStudyMin = (h*60 + m) + study
+
+const sh = Math.floor(endStudyMin / 60)
+const sm = endStudyMin % 60
+
+// próximo horário já correto
+const partsNext = nextTime.split(":")
+const eh = parseInt(partsNext[0])
+const em = parseInt(partsNext[1]) || 0
+
+label = `${value} (${String(sh).padStart(2,"0")}:${String(sm).padStart(2,"0")} → ${String(eh).padStart(2,"0")}:${String(em).padStart(2,"0")})`
+}
+
+cell.innerHTML = `<span class="qts-interval-label">${label}</span>`;
 cell.addEventListener("click",(e)=>{
 
 // se foi arraste, ignora clique
@@ -610,34 +644,46 @@ cell.textContent = formatted
 this.data.grid[row]._time = formatted
 
 // AUTO GERAR PRÓXIMO
-const nextMinutes = (h * 60 + m) + 60
-
-const nh = Math.floor(nextMinutes / 60)
-const nm = nextMinutes % 60
-
-const nextRow = row + 1
-
-if(!this.data.grid[nextRow]){
-this.data.grid[nextRow] = {}
+if(!this.data.studyDuration){
+    this.data.studyDuration = 25
 }
+let currentMinutesCalc = h * 60 + m
 
-if(!this.data.grid[nextRow]._time){
+for(let i = row + 1; i < this.data.structure.length; i++){
 
-const nextFormatted =
-`${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}`
+    const item = this.data.structure[i]
 
-this.data.grid[nextRow]._time = nextFormatted
+    let increment = this.data.studyDuration
 
-const nextCell = document.querySelector(
-`#qtsGrid .qts-time[data-row="${nextRow}"]`
-)
+    if(item.type === "interval"){
+        const txt = item.duration || ""
+        const match = txt.match(/\d+/)
+        if(match) increment = parseInt(match[0])
+    }
 
-if(nextCell){
-nextCell.textContent = nextFormatted
+    currentMinutesCalc += increment
+
+    if(item.type === "row"){
+
+        const nh = Math.floor(currentMinutesCalc / 60)
+        const nm = currentMinutesCalc % 60
+
+        if(!this.data.grid[i]) this.data.grid[i] = {}
+
+        const formatted =
+        `${String(nh).padStart(2,"0")}:${String(nm).padStart(2,"0")}`
+
+        this.data.grid[i]._time = formatted
+
+        const cell = document.querySelector(
+            `#qtsGrid .qts-time[data-row="${i}"]`
+        )
+
+        if(cell){
+            cell.textContent = formatted
+        }
+    }
 }
-
-}
-
 }
 }
 
@@ -667,6 +713,12 @@ sel.addRange(range)
 })
 
         cell.contentEditable = true;
+
+        cell.addEventListener("paste", (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData("text");
+    document.execCommand("insertText", false, text);
+});
         
 cell.dataset.navIndex = 
 document.querySelectorAll('#qtsGrid div[contenteditable="true"]').length;
@@ -781,8 +833,7 @@ if(isNaN(h)) return
 
 const minutes = h*60 + m
 
-if(currentMinutes >= minutes){
-
+if(currentMinutes >= minutes && currentMinutes < minutes + 60){
 let el = cell
 
 while(el && !el.classList.contains("qts-header")){
@@ -815,23 +866,29 @@ this.render()
 return
 }
 
-if(type === "estudo"){
+if(type === "pomo25"){
+
+    this.data.studyDuration = 25
 
 this.data.structure = [
 { type:"row" },
+{ type:"interval", duration:"Pausa 5min" },
 { type:"row" },
+{ type:"interval", duration:"Pausa 5min" },
 { type:"row" },
-{ type:"interval", duration:"Intervalo 20min" },
-{ type:"row" },
-{ type:"row" }
+{ type:"interval", duration:"Pausa 5min" }
 ]
 
 this.data.grid = {
 0:{ _time:"07:00" },
-1:{ _time:"08:00" },
-2:{ _time:"09:00" },
-4:{ _time:"10:20" },
-5:{ _time:"11:20" }
+2:{ _time:"07:30" },
+4:{ _time:"08:00" },
+6:{ _time:"08:30" },
+8:{ _time:"09:00" },
+10:{ _time:"09:30" },
+12:{ _time:"10:00" },
+14:{ _time:"10:30" },
+16:{ _time:"11:00" }
 }
 
 this.save()
@@ -840,8 +897,175 @@ this.render()
 return
 }
 
-console.log("template:", type)
+if(type === "deep50"){
 
+    this.data.studyDuration = 50
+
+this.data.structure = [
+{ type:"row" },
+{ type:"interval", duration:"Pausa 15min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 15min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 15min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 15min" },
+{ type:"row" }
+]
+
+this.generateTimes("07:00")
+this.save()
+this.render()
+return
+
+setTimeout(()=>{
+    const first = document.querySelector('#qtsGrid .qts-time[data-row="0"]')
+    if(first){
+        first.focus()
+        first.blur()
+    }
+}, 50)
+
+return
+}
+
+if(type === "flow52"){
+
+this.data.studyDuration = 52
+
+this.data.structure = [
+{ type:"row" },
+{ type:"interval", duration:"Pausa 17min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 17min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 17min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 17min" },
+{ type:"row" }
+]
+
+this.generateTimes("07:00")
+this.save()
+this.render()
+return
+
+setTimeout(()=>{
+    const first = document.querySelector('#qtsGrid .qts-time[data-row="0"]')
+    if(first){
+        first.focus()
+        first.blur()
+    }
+}, 50)
+
+return
+}
+
+if(type === "ultra90"){
+
+this.data.studyDuration = 90
+
+this.data.structure = [
+{ type:"row" },
+{ type:"interval", duration:"Pausa 30min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 30min" },
+{ type:"row" }
+]
+
+this.generateTimes("07:00")
+this.save()
+this.render()
+return
+
+setTimeout(()=>{
+    const first = document.querySelector('#qtsGrid .qts-time[data-row="0"]')
+    if(first){
+        first.focus()
+        first.blur()
+    }
+}, 50)
+
+return
+}
+
+if(type === "sprint15"){
+
+this.data.studyDuration = 15
+
+this.data.structure = [
+{ type:"row" },
+{ type:"interval", duration:"Pausa 5min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 5min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 5min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 5min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 5min" },
+{ type:"row" },
+{ type:"interval", duration:"Pausa 5min" },
+{ type:"row" }
+]
+
+this.generateTimes("07:00")
+this.save()
+this.render()
+return
+
+setTimeout(()=>{
+    const first = document.querySelector('#qtsGrid .qts-time[data-row="0"]')
+    if(first){
+        first.focus()
+        first.blur()
+    }
+}, 50)
+
+return
+}
+
+if(type === "progressivo"){
+
+this.data.structure = [
+{ type:"row", duration: 15 },
+{ type:"interval", duration:"Pausa 5min" },
+
+{ type:"row", duration: 25 },
+{ type:"interval", duration:"Pausa 10min" },
+
+{ type:"row", duration: 35 },
+{ type:"interval", duration:"Pausa 15min" },
+
+{ type:"row", duration: 45 },
+{ type:"interval", duration:"Pausa 20min" },
+
+{ type:"row", duration: 55 },
+{ type:"interval", duration:"Pausa 25min" },
+
+{ type:"row", duration: 65 },
+{ type:"interval", duration:"Pausa 30min" }
+]
+
+this.generateTimes("07:00")
+this.save()
+this.render()
+return
+
+
+this.save()
+this.render()
+
+setTimeout(()=>{
+    const first = document.querySelector('#qtsGrid .qts-time[data-row="0"]')
+    if(first){
+        first.focus()
+        first.blur()
+    }
+}, 50)
+
+return
+}
 },
 
     save() {
@@ -850,6 +1074,94 @@ console.log("template:", type)
             JSON.stringify(this.data)
         );
     },
+
+    generateTimes(startTime){
+
+let h = parseInt(startTime.split(":")[0])
+let m = parseInt(startTime.split(":")[1]) || 0
+
+let current = h * 60 + m
+
+this.data.grid = {}
+
+for(let i = 0; i < this.data.structure.length; i++){
+
+const item = this.data.structure[i]
+
+if(item.type === "row"){
+
+const hh = Math.floor(current / 60)
+const mm = current % 60
+
+this.data.grid[i] = {
+_time: `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}`
+}
+
+// soma estudo
+const study = item.duration || this.data.studyDuration || 25
+current += study
+}
+
+if(item.type === "interval"){
+
+const txt = item.duration || ""
+const match = txt.match(/\d+/)
+
+if(match){
+current += parseInt(match[0])
+}
+}
+}
+
+},
+
+    getRowTimeRange(rowIndex){
+
+const base = this.data.grid[rowIndex]?._time
+if(!base) return null
+
+let h = 0
+let m = 0
+
+if(base.includes(":")){
+const parts = base.split(":")
+h = parseInt(parts[0])
+m = parseInt(parts[1]) || 0
+}else{
+h = parseInt(base)
+m = 0
+}
+
+if(isNaN(h)) return null
+
+let start = h*60 + m
+
+// 🔥 TEMPO DE ESTUDO (correto)
+let studyDuration = this.data.studyDuration || 25
+
+// 🔥 TEMPO DO INTERVALO (correto)
+let breakDuration = 5
+
+const nextItem = this.data.structure[rowIndex + 1]
+
+if(nextItem && nextItem.type === "interval"){
+const txt = nextItem.duration || ""
+const match = txt.match(/\d+/)
+if(match) breakDuration = parseInt(match[0])
+}
+
+// fim do estudo
+let endStudy = start + studyDuration
+
+// fim do intervalo
+let endBreak = endStudy + breakDuration
+
+return {
+start: endStudy,   // início da pausa
+end: endBreak      // fim da pausa
+}
+
+},
 
 navigateCell(row, col, direction){
 

@@ -620,7 +620,7 @@ body.dark #qtsGrid{
 
 #qtsGrid > div {
     min-height: 35px;
-    border: px solid rgba(0,0,0,0.08);
+    border: 1px solid rgba(0,0,0,0.08);
     border-radius: 4px;
     display: inline-grid;
     align-items: center;

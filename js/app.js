@@ -42,6 +42,7 @@ const Core = {
 
         if (typeof Pomodoro !== "undefined")
             this.modules.pomodoro = Pomodoro;
+        
     },
 
        getActiveModule() {
