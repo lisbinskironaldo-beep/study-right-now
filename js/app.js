@@ -131,6 +131,81 @@ const Core = {
 
     navigate(target) {
 
+   if (target === "questions") {
+
+this.stopAll()
+this.hideHero()
+this.hideModules()
+
+const moduleEl = document.getElementById("questionsModule")
+if (moduleEl) moduleEl.classList.add("active")
+
+this.state.mode = "questions"
+document.body.setAttribute("data-mode", "questions")
+
+if (!window.questionsLoaded) {
+
+fetch("questions/questions.html")
+.then(r => r.text())
+.then(html => {
+
+document.getElementById("questionsContainer").innerHTML = html
+
+// CSS
+const link = document.createElement("link")
+link.rel = "stylesheet"
+link.href = "questions/questions.css?v=" + Date.now()
+document.head.appendChild(link)
+
+// CONTEXT
+const contextScript = document.createElement("script")
+contextScript.src = "questions/questions.context.js"
+
+contextScript.onload = () => {
+
+// STORE
+const storeScript = document.createElement("script")
+storeScript.src = "questions/questions.store.js"
+
+storeScript.onload = () => {
+
+// MAIN
+const script = document.createElement("script")
+script.src = "questions/questions.js?v=" + Date.now()
+
+script.onload = () => {
+
+window.questionsLoaded = true
+
+if (window.QuestionsPage) {
+QuestionsPage.init()
+}
+
+}
+
+document.body.appendChild(script)
+
+}
+
+document.body.appendChild(storeScript)
+
+}
+
+document.body.appendChild(contextScript)
+
+})
+
+} else {
+
+if (window.QuestionsPage) {
+QuestionsPage.init()
+}
+
+}
+
+return
+}
+
         if (this.modules[target]) {
             this.changeMode(target);
             return;

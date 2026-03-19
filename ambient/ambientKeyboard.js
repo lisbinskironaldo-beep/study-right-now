@@ -40,7 +40,7 @@ help.innerHTML = `
 <div>ALT + ENTER — favoritar</div>
 <div>ALT + F — favoritos</div>
 <div>ALT + S — embaralhar</div>
-<div>ALT + M — modos do painel</div>
+<div>ALT + M — esconder player</div>
 <div>↑ ↓ — navegar lista</div>
 <div>← → — trocar música</div>
 <div>ENTER — tocar</div>
@@ -344,7 +344,7 @@ help.innerHTML = `
 <div>ALT + ENTER — favoritar</div>
 <div>ALT + F — favoritos</div>
 <div>ALT + S — embaralhar</div>
-<div>ALT + M — modos do painel</div>
+<div>ALT + M — esconder player</div>
 <div>↑ ↓ — navegar lista</div>
 <div>← → — trocar música</div>
 <div>ENTER — tocar</div>

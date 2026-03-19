@@ -17,13 +17,17 @@ const Stats = {
 ],
 
     data: JSON.parse(localStorage.getItem("study_stats_v2")) || {
-        days: {}, // yyyy-m-d : { seconds, pomodoros }
-        streak: 0,
-        totalXP: 0,
-        level: 1,
+    days: {},
+    streak: 0,
+    totalXP: 0,
+    level: 1,
 
-        unlocked: [],
-    },
+    unlocked: [],
+
+    // 🔥 NOVO (não existia)
+    performance: {},   // por tema
+    history: []        // respostas
+},
 
     getTodayKey() {
         const d = new Date();
@@ -413,6 +417,38 @@ renderStreakVisual() {
             </div>
         </div>
     `;
+},
+
+addAnswer({ tema, correta }) {
+
+    if (!tema) return;
+
+    // histórico
+    this.data.history.unshift({
+        tema,
+        correta,
+        timestamp: Date.now()
+    });
+
+    if (this.data.history.length > 200) {
+        this.data.history.pop();
+    }
+
+    // performance por tema
+    if (!this.data.performance[tema]) {
+        this.data.performance[tema] = {
+            acertos: 0,
+            erros: 0
+        };
+    }
+
+    if (correta) {
+        this.data.performance[tema].acertos++;
+    } else {
+        this.data.performance[tema].erros++;
+    }
+
+    this.save();
 },
     save() {
         localStorage.setItem("study_stats_v2",

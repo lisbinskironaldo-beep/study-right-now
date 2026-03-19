@@ -115,6 +115,13 @@ value="${AmbientState.volume}">
 
 this.bindControls()
 
+const panel = document.querySelector(".ambient-panel")
+if (panel) {
+  panel.style.display = "none"
+}
+
+AmbientState.panelMode = 1
+
 const mini = document.getElementById("ambientMini")
 
 
