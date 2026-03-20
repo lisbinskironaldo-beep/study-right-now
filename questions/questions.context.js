@@ -4,7 +4,9 @@ key: "questions_context_v1",
 
 data: {
 base: "ENEM",
-focus: "matematica"
+focus: "matematica",
+subjects: [],
+topics: []
 },
 
 load() {
@@ -23,6 +25,16 @@ this.save()
 
 setFocus(focus) {
 this.data.focus = focus
+this.save()
+},
+
+setSubjects(list) {
+this.data.subjects = list
+this.save()
+},
+
+setTopics(list) {
+this.data.topics = list
 this.save()
 },
 

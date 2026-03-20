@@ -20,20 +20,25 @@ save() {
 localStorage.setItem(this.key, JSON.stringify(this.data))
 },
 
-registerAnswer(topic, correct) {
+registerAnswer(topic, correct, time) {
 
 if (!this.data.topics[topic]) {
 this.data.topics[topic] = {
 hits: 0,
-errors: 0
+errors: 0,
+lastSeen: Date.now(),
+avgTime: 0
 }
 }
 
-if (correct) {
-this.data.topics[topic].hits++
-} else {
-this.data.topics[topic].errors++
-}
+const t = this.data.topics[topic]
+
+if (correct) t.hits++
+else t.errors++
+
+t.lastSeen = Date.now()
+
+t.avgTime = ((t.avgTime || 0) + time) / 2
 
 this.save()
 

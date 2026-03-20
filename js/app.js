@@ -158,6 +158,7 @@ link.href = "questions/questions.css?v=" + Date.now()
 document.head.appendChild(link)
 
 // CONTEXT
+// CONTEXT
 const contextScript = document.createElement("script")
 contextScript.src = "questions/questions.context.js"
 
@@ -168,6 +169,12 @@ const storeScript = document.createElement("script")
 storeScript.src = "questions/questions.store.js"
 
 storeScript.onload = () => {
+
+// ENGINE
+const engineScript = document.createElement("script")
+engineScript.src = "questions/questions.engine.js"
+
+engineScript.onload = () => {
 
 // MAIN
 const script = document.createElement("script")
@@ -184,6 +191,10 @@ QuestionsPage.init()
 }
 
 document.body.appendChild(script)
+
+}
+
+document.body.appendChild(engineScript)
 
 }
 

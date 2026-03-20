@@ -2,11 +2,22 @@
 
     <div style="text-align:center;margin-bottom:15px;">
 <button id="startTrainingBtn">COMEÇAR TREINO</button>
+<button id="openStatsBtn" style="margin-top:10px;">📊 VER DESEMPENHO</button>
+</div>
+
+<div style="display:flex;gap:10px;justify-content:center;margin-bottom:10px;">
+
+<button id="qAll" class="q-filter-btn">Todos</button>
+<button id="qMatematica" class="q-filter-btn">Matemática</button>
+<button id="qPortugues" class="q-filter-btn">Português</button>
+
 </div>
 
 <div class="q-header">
 <div id="qTema">Matemática</div>
 <div id="qProgress">1/10</div>
+<div class="q-progress-bar">
+<div id="qProgressFill"></div>
 </div>
 
 <div id="qPergunta" class="q-pergunta"></div>
@@ -14,5 +25,27 @@
 <div id="qOpcoes" class="q-opcoes"></div>
 
 <div id="qFeedback" class="q-feedback"></div>
+
+</div> <!-- questions-root -->
+
+<div id="statsPanel" style="
+display:none;
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#111;
+color:#fff;
+padding:20px;
+z-index:10;
+">
+
+<div style="display:flex;justify-content:space-between;align-items:center;">
+<h3>Desempenho</h3>
+<button id="closeStatsBtn">✖</button>
+</div>
+
+<div id="statsContent"></div>
 
 </div>
