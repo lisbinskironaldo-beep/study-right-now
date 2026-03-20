@@ -42,6 +42,7 @@ topic: "constitucional"
 }
 
 }
+
 },
 
 init() {
@@ -53,6 +54,7 @@ const btn = document.getElementById("startTrainingBtn")
 if (btn) {
 btn.onclick = () => {
 this.data.current = 0
+this.data.sessionList = null
 this.render()
 }
 }
@@ -62,73 +64,47 @@ this.render()
 render() {
 
 const list = this.getCurrentQuestions()
+console.log("LIST:", list)
+
 
 if (!list.length) {
 document.getElementById("questionsContainer").innerHTML = "Sem questões"
 return
 }
 
-const q = list[this.data.current]
+const q = this.getCurrentQuestion()
+if (!q) return
+document.getElementById("qPergunta").textContent = q.question
 
-const container = document.getElementById("questionsContainer")
+const opcoesEl = document.getElementById("qOpcoes")
 
-container.innerHTML = `
-
-<div style="text-align:center;margin-bottom:15px;">
-<button id="startTrainingBtn">COMEÇAR TREINO</button>
-</div>
-
-<div class="q-box">
-
-<div class="q-header">
-
-<div style="margin-bottom:6px;">
-
-<span id="q-base" style="cursor:pointer;">
-${QuestionsContext.get().base}
-</span>
-
-•
-
-<span id="q-focus" style="cursor:pointer;">
-${QuestionsContext.get().focus}
-</span>
-
-</div>
-
-Questão ${this.data.current + 1}/${this.getCurrentQuestions().length}
-
-</div>
-
-<div class="q-question">
-${q.question}
-</div>
-
-<div class="q-options">
-${q.options.map((opt,i)=>`
+opcoesEl.innerHTML = q.options.map((opt,i)=>`
 <button class="q-option" data-i="${i}">
 ${opt}
 </button>
-`).join("")}
-</div>
+`).join("")
 
-<div id="q-diagnosis" class="q-diagnosis"></div>
-
-</div>
-`
+this.updateHeader()
+console.log("Q:", q)
 
 const btn = document.getElementById("startTrainingBtn")
 
 if (btn) {
 btn.onclick = () => {
+
 this.data.current = 0
+this.data.sessionList = null
+
 this.render()
+
 }
 }
 
 this.bind()
 this.renderDiagnosis()
 this.bindContextSwitch()
+
+document.getElementById("qFeedback").textContent = ""
 
 },
 
@@ -154,6 +130,9 @@ const q = list[this.data.current]
 
 const correct = index === q.correct
 
+document.getElementById("qFeedback").textContent =
+correct ? "Correto" : "Errado"
+
 QuestionsStore.registerAnswer(q.topic, correct)
 
 this.showFeedback(correct, q, index)
@@ -168,13 +147,30 @@ if (this.data.current >= this.getCurrentQuestions().length) {
 alert("Fim")
 this.data.current = 0
 }
-
+document.getElementById("qFeedback").textContent = ""
 this.render()
+this.logSession()
 },
 
 showFeedback(correct, q, index) {
 
 const container = document.querySelector(".q-box")
+
+const buttons = document.querySelectorAll(".q-option")
+
+buttons.forEach((btn, i) => {
+
+btn.disabled = true
+
+if (i === q.correct) {
+btn.style.background = "#16a34a"
+}
+
+if (i === index && i !== q.correct) {
+btn.style.background = "#dc2626"
+}
+
+})
 
 const selected = q.options[index]
 const right = q.options[q.correct]
@@ -190,7 +186,7 @@ container.appendChild(feedback)
 
 setTimeout(() => {
 this.next()
-}, 1500)
+}, 800)
 
 },
 
@@ -232,8 +228,7 @@ baseEl.onclick = () => {
 const v = prompt("Base (ENEM, OAB, PM...)")
 if (!v) return
 QuestionsContext.setBase(v)
-this.data.current = 0
-this.render()
+this.resetSession()
 }
 }
 
@@ -242,8 +237,7 @@ focusEl.onclick = () => {
 const v = prompt("Foco (matematica, portugues...)")
 if (!v) return
 QuestionsContext.setFocus(v)
-this.data.current = 0
-this.render()
+this.resetSession()
 }
 }
 
@@ -255,13 +249,18 @@ const ctx = QuestionsContext.get()
 const profile = QuestionsStore.getProfile()
 
 const base = ctx.base
-
 const baseData = this.data.questionsDB[base]
+
 if (!baseData) return []
 
 // se não tem erros ainda → usa foco atual
 if (!Object.keys(profile).length) {
-return baseData[ctx.focus] || []
+const list = baseData[ctx.focus] || []
+if (!this.data.sessionList) {
+this.data.sessionList = this.shuffle([...list])
+}
+
+return this.data.sessionList
 }
 
 // encontra pior tópico
@@ -275,10 +274,80 @@ const allSubjects = Object.values(baseData).flat()
 
 const filtered = allSubjects.filter(q => q.topic === worstTopic)
 
-if (filtered.length) return filtered
+if (filtered.length) {
+
+if (!this.data.sessionList) {
+this.data.sessionList = this.shuffle(filtered)
+}
+
+return this.data.sessionList
+}
 
 // fallback
-return baseData[ctx.focus] || []
+const list = baseData[ctx.focus] || []
+
+if (!this.data.sessionList) {
+this.data.sessionList = this.shuffle([...list])
+}
+
+return this.data.sessionList
+},
+
+getCurrentQuestion() {
+
+const list = this.getCurrentQuestions()
+
+if (!list.length) return null
+
+return list[this.data.current]
+
+},
+
+resetSession() {
+
+this.data.current = 0
+this.data.sessionList = null
+
+this.render()
+
+},
+
+shuffle(array) {
+
+const arr = [...array]
+
+for (let i = arr.length - 1; i > 0; i--) {
+
+let j = Math.floor(Math.random() * (i + 1))
+
+let temp = arr[i]
+arr[i] = arr[j]
+arr[j] = temp
+
+}
+
+return arr
+
+},
+
+updateHeader() {
+
+const ctx = QuestionsContext.get()
+
+document.getElementById("qTema").textContent =
+ctx.focus
+
+document.getElementById("qProgress").textContent =
+`${this.data.current + 1}/${this.getCurrentQuestions().length}`
+
+},
+
+logSession() {
+
+const list = this.getCurrentQuestions()
+
+console.log("TOTAL:", list.length)
+console.log("ATUAL:", this.data.current)
 
 }
 
