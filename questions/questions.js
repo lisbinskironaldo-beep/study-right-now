@@ -47,6 +47,16 @@ topic: "constitucional"
 init() {
 QuestionsStore.load()
 this.render()
+
+const btn = document.getElementById("startTrainingBtn")
+
+if (btn) {
+btn.onclick = () => {
+this.data.current = 0
+this.render()
+}
+}
+
 },
 
 render() {
@@ -63,6 +73,11 @@ const q = list[this.data.current]
 const container = document.getElementById("questionsContainer")
 
 container.innerHTML = `
+
+<div style="text-align:center;margin-bottom:15px;">
+<button id="startTrainingBtn">COMEÇAR TREINO</button>
+</div>
+
 <div class="q-box">
 
 <div class="q-header">
@@ -101,6 +116,15 @@ ${opt}
 
 </div>
 `
+
+const btn = document.getElementById("startTrainingBtn")
+
+if (btn) {
+btn.onclick = () => {
+this.data.current = 0
+this.render()
+}
+}
 
 this.bind()
 this.renderDiagnosis()
@@ -228,19 +252,33 @@ this.render()
 getCurrentQuestions() {
 
 const ctx = QuestionsContext.get()
+const profile = QuestionsStore.getProfile()
 
 const base = ctx.base
-const focus = ctx.focus
 
 const baseData = this.data.questionsDB[base]
-
 if (!baseData) return []
 
-const list = baseData[focus]
+// se não tem erros ainda → usa foco atual
+if (!Object.keys(profile).length) {
+return baseData[ctx.focus] || []
+}
 
-if (!list) return []
+// encontra pior tópico
+const worst = Object.entries(profile)
+.sort((a,b) => (b[1].errors || 0) - (a[1].errors || 0))[0]
 
-return list
+const worstTopic = worst[0]
+
+// tenta achar lista que contenha esse tópico
+const allSubjects = Object.values(baseData).flat()
+
+const filtered = allSubjects.filter(q => q.topic === worstTopic)
+
+if (filtered.length) return filtered
+
+// fallback
+return baseData[ctx.focus] || []
 
 }
 
