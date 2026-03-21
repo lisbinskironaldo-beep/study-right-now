@@ -3,6 +3,7 @@ const QuestionsContext = {
 key: "questions_context_v1",
 
 data: {
+mode: "assunto",
 base: "ENEM",
 focus: "matematica",
 subjects: [],
@@ -16,6 +17,11 @@ if (saved) this.data = JSON.parse(saved)
 
 save() {
 localStorage.setItem(this.key, JSON.stringify(this.data))
+},
+
+setMode(mode) {
+this.data.mode = mode
+this.save()
 },
 
 setBase(base) {

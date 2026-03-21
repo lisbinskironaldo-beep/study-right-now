@@ -3,7 +3,6 @@ const QuestionsStore = {
 key: "questions_profile_v1",
 
 data: {
-topics: {}
 },
 
 load() {
@@ -20,32 +19,30 @@ save() {
 localStorage.setItem(this.key, JSON.stringify(this.data))
 },
 
-registerAnswer(topic, correct, time) {
+registerAnswer(contextKey, topic, correct, time) {
 
-if (!this.data.topics[topic]) {
-this.data.topics[topic] = {
-hits: 0,
-errors: 0,
-lastSeen: Date.now(),
-avgTime: 0
-}
+if (!this.data[contextKey]) {
+this.data[contextKey] = {}
 }
 
-const t = this.data.topics[topic]
+const ctx = this.data[contextKey]
+
+if (!ctx[topic]) {
+ctx[topic] = { hits: 0, errors: 0, avgTime: 0 }
+}
+
+const t = ctx[topic]
 
 if (correct) t.hits++
 else t.errors++
 
-t.lastSeen = Date.now()
-
-t.avgTime = ((t.avgTime || 0) + time) / 2
+t.avgTime = (t.avgTime + time) / 2
 
 this.save()
-
 },
 
-getProfile() {
-return this.data.topics
+getProfile(contextKey) {
+return this.data[contextKey] || {}
 }
 
 }

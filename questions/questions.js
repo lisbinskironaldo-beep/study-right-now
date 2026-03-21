@@ -216,7 +216,8 @@ document.getElementById("qFeedback").textContent =
 correct ? `Correto +${xp} XP` : "Errado"
 
 const time = Date.now() - this.data.startTime
-QuestionsStore.registerAnswer(q.topic, correct, time)
+const contextKey = this.getContextKey()
+QuestionsStore.registerAnswer(contextKey, q.topic, correct, time)
 
 const afterLevel = this.getLevelData().level
 
@@ -300,7 +301,8 @@ const el = document.getElementById("q-diagnosis")
 const statsEl = document.getElementById("q-stats")
 if (!el) return
 
-const profile = QuestionsStore.getProfile()
+const contextKey = this.getContextKey()
+const profile = QuestionsStore.getProfile(contextKey)
 const entries = Object.entries(profile)
 
 if (!entries.length) {
@@ -358,6 +360,27 @@ const allBtn = document.getElementById("qAll")
 const matBtn = document.getElementById("qMatematica")
 const porBtn = document.getElementById("qPortugues")
 
+const modeAssunto = document.getElementById("modeAssunto")
+const modeNivel = document.getElementById("modeNivel")
+
+const lvlFund = document.getElementById("lvlFundamental")
+const lvlMed = document.getElementById("lvlMedio")
+const lvlSup = document.getElementById("lvlSuperior")
+
+const updateLevelUI = () => {
+
+const level = QuestionsContext.get().level
+
+lvlFund?.classList.remove("active")
+lvlMed?.classList.remove("active")
+lvlSup?.classList.remove("active")
+
+if (level === "fundamental") lvlFund?.classList.add("active")
+if (level === "medio") lvlMed?.classList.add("active")
+if (level === "superior") lvlSup?.classList.add("active")
+
+}
+
 const openBtn = document.getElementById("openStatsBtn")
 const closeBtn = document.getElementById("closeStatsBtn")
 const panel = document.getElementById("statsPanel")
@@ -379,7 +402,117 @@ panel.style.display = "none"
 // ===== FILTER =====
 const ctx = QuestionsContext.get()
 
+const assuntoContainer = document.getElementById("assuntoContainer")
+
+const renderAssuntos = () => {
+
+if (!assuntoContainer) return
+
+const ctx = QuestionsContext.get()
+
+// ESCONDE se não estiver em modo assunto
+if (ctx.mode !== "assunto") {
+assuntoContainer.innerHTML = ""
+return
+}
+
+const baseData = this.data.questionsDB[ctx.base]
+if (!baseData) return
+
+const subject = baseData[ctx.focus]
+if (!subject) {
+assuntoContainer.innerHTML = ""
+return
+}
+
+// categorias
+const assuntos = Object.keys(subject)
+
+assuntoContainer.innerHTML = assuntos.map(a => `
+<label style="margin:5px;display:inline-block;">
+<input type="checkbox" value="${a}" ${ctx.assuntos?.includes(a) ? "checked" : ""}/>
+${a}
+</label>
+`).join("")
+
+// bind
+assuntoContainer.querySelectorAll("input").forEach(input => {
+
+input.onchange = () => {
+
+let list = ctx.assuntos || []
+
+if (input.checked) {
+if (!list.includes(input.value)) {
+list.push(input.value)
+}
+} else {
+list = list.filter(v => v !== input.value)
+}
+
+QuestionsContext.setAssuntos(list)
+this.resetSession()
+
+}
+
+})
+
+}
+
+const updateModeUI = () => {
+
+const mode = QuestionsContext.get().mode
+
+modeAssunto?.classList.remove("active")
+modeNivel?.classList.remove("active")
+
+if (mode === "assunto") modeAssunto?.classList.add("active")
+if (mode === "nivel") modeNivel?.classList.add("active")
+
+}
+
+if (modeAssunto) {
+modeAssunto.onclick = () => {
+QuestionsContext.setMode("assunto")
+updateModeUI()
+this.resetSession()
+}
+}
+
+if (modeNivel) {
+modeNivel.onclick = () => {
+QuestionsContext.setMode("nivel")
+updateModeUI()
+this.resetSession()
+}
+}
+
+if (lvlFund) {
+lvlFund.onclick = () => {
+QuestionsContext.setLevel("fundamental")
+updateLevelUI()
+this.resetSession()
+}
+}
+
+if (lvlMed) {
+lvlMed.onclick = () => {
+QuestionsContext.setLevel("medio")
+updateLevelUI()
+this.resetSession()
+}
+}
+
+if (lvlSup) {
+lvlSup.onclick = () => {
+QuestionsContext.setLevel("superior")
+updateLevelUI()
+this.resetSession()
+}
+}
+
 const updateUI = () => {
+updateModeUI()
 
 const subjects = QuestionsContext.get().subjects || []
 
@@ -413,6 +546,8 @@ list.push(value)
 }
 
 QuestionsContext.setSubjects(list)
+QuestionsContext.setAssuntos([])
+
 updateUI()
 this.resetSession()
 }
@@ -434,6 +569,8 @@ this.resetSession()
 }
 }
 updateUI()
+updateLevelUI()
+renderAssuntos()
 },
 
 
@@ -441,30 +578,40 @@ updateUI()
 getCurrentQuestions() {
 
 const ctx = QuestionsContext.get()
-const profile = QuestionsStore.getProfile()
+
+const mode = ctx.mode || "assunto"
+
+const contextKey = this.getContextKey()
+const profile = QuestionsStore.getProfile(contextKey)
 
 const base = ctx.base
 const baseData = this.data.questionsDB[base]
 
 if (!baseData) return []
 
-let subject
+let all = []
 
 if (ctx.focus === "all") {
-subject = Object.values(baseData)
-} else {
-subject = baseData[ctx.focus]
-}
 
+Object.values(baseData).forEach(subject => {
+Object.values(subject).forEach(category => {
+if (Array.isArray(category)) {
+all.push(...category)
+}
+})
+})
+
+} else {
+
+const subject = baseData[ctx.focus]
 if (!subject) return []
 
-// transforma categorias em lista única
-let all
+Object.values(subject).forEach(category => {
+if (Array.isArray(category)) {
+all.push(...category)
+}
+})
 
-if (Array.isArray(subject)) {
-all = subject.flatMap(s => Object.values(s).flat())
-} else {
-all = Object.values(subject).flat()
 }
 
 // se não tem histórico → aleatório
@@ -477,17 +624,59 @@ this.data.sessionList = this.shuffle([...all])
 return this.data.sessionList
 }
 
-// pega pior tópico
+// fallback se vazio ou pequeno
+let finalList = all
+
+const selectedAssuntos = ctx.assuntos || []
+
+if (mode === "assunto") {
+
+let pool = all
+
+// se usuário selecionou assuntos → restringe pool
+if (selectedAssuntos.length) {
+pool = all.filter(q => selectedAssuntos.includes(q.topic))
+}
+
+// tenta adaptar dentro do pool
 const worst = Object.entries(profile)
+.filter(([topic]) => pool.some(q => q.topic === topic))
 .sort((a,b) => (b[1].errors || 0) - (a[1].errors || 0))[0]
 
 const worstTopic = worst?.[0]
 
-// filtra por tópico
-const filtered = all.filter(q => q.topic === worstTopic)
+// foca no pior tópico dentro do pool
+if (worstTopic) {
 
-// fallback se vazio ou pequeno
-const finalList = filtered.length >= 3 ? filtered : all
+    const focused = pool.filter(q => q.topic === worstTopic)
+
+    if (focused.length >= 3) {
+        finalList = focused
+    } else {
+        finalList = pool
+    }
+
+} else {
+    finalList = pool
+}
+
+}
+
+if (mode === "nivel") {
+
+const level = ctx.level || "medio"
+
+finalList = all.filter(q => {
+
+if (level === "fundamental") return q.difficulty <= 3
+if (level === "medio") return q.difficulty > 3 && q.difficulty <= 6
+if (level === "superior") return q.difficulty > 6
+
+return true
+
+})
+
+}
 
 if (!this.data.sessionList) {
 this.data.sessionList = this.shuffle([...finalList])
@@ -564,7 +753,8 @@ temaEl.textContent =
 
 getLevelData() {
 
-const profile = QuestionsStore.getProfile()
+const contextKey = this.getContextKey()
+const profile = QuestionsStore.getProfile(contextKey)
 
 const entries = Object.values(profile)
 
@@ -626,7 +816,8 @@ renderStatsPanel(selectedSubject = null) {
 const el = document.getElementById("statsContent")
 if (!el) return
 
-const profile = QuestionsStore.getProfile()
+const contextKey = this.getContextKey()
+const profile = QuestionsStore.getProfile(contextKey)
 const entries = Object.entries(profile)
 
 if (!entries.length) {
@@ -821,6 +1012,11 @@ const list = this.getCurrentQuestions()
 console.log("TOTAL:", list.length)
 console.log("ATUAL:", this.data.current)
 
+},
+
+getContextKey() {
+const ctx = QuestionsContext.get()
+return `${ctx.base}_${ctx.focus}_${ctx.level || "medio"}`
 }
 
 };
